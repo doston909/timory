@@ -11,7 +11,7 @@ import { AuthGuard } from '../auth/guards/auth.guards';
 import { RolesGuard } from '../auth/guards/roles.guards';
 import { MemberUpdate } from '../../libs/dto/member/member.update';
 import { shapeIntoMongoObjectId } from '../../libs/config';
-
+import { WithoutGuard } from '../auth/guards/without.guards';
 
 
 @Resolver()
@@ -32,7 +32,8 @@ export class MemberResolver {
 
 	@UseGuards(AuthGuard)
 	@Query(() => String)
-	public async checkAuth(@AuthMember('memberNick') memberNick: string): Promise<string> { // bu yerda authMember ichidagi memberNickni memberNickga tenglab oldim
+	public async checkAuth(@AuthMember('memberNick') memberNick: string): Promise<string> {
+		// bu yerda authMember ichidagi memberNickni memberNickga tenglab oldim
 		console.log('Query: checkAuth');
 		console.log('memberNick:', memberNick);
 		return `Hi ${memberNick}`;
@@ -41,7 +42,8 @@ export class MemberResolver {
 	@Roles(MemberType.USER, MemberType.BRAND, MemberType.DEALER)
 	@UseGuards(RolesGuard)
 	@Query(() => String)
-	public async checkAuthRoles(@AuthMember() authMember: Member): Promise<string> { // bu yerda authMember ichidagi memberNickni memberNickga tenglab oldim
+	public async checkAuthRoles(@AuthMember() authMember: Member): Promise<string> {
+		// bu yerda authMember ichidagi memberNickni memberNickga tenglab oldim
 		console.log('Query: checkAuth');
 		return `Hi ${authMember.memberNick}, you are ${authMember.memberType}, (memberid: ${authMember._id})`;
 	}
@@ -50,21 +52,21 @@ export class MemberResolver {
 	@UseGuards(AuthGuard)
 	@Mutation(() => Member)
 	public async updateMember(
-		@Args("input") input: MemberUpdate, 
-		@AuthMember('_id') memberId: ObjectId
-	): Promise<Member> { // bu yerda authMember ichidagi _idni memberIdga tenglab oldim
+		@Args('input') input: MemberUpdate,
+		@AuthMember('_id') memberId: ObjectId,
+	): Promise<Member> {
+		// bu yerda authMember ichidagi _idni memberIdga tenglab oldim
 		console.log('Mutation: updateMember');
 		delete input._id;
 		return this.memberService.updateMember(memberId, input);
 	}
 
-	
-	
+	@UseGuards(WithoutGuard)
 	@Query(() => Member)
-	public async getMember(@Args("memberId") input: string): Promise<Member> {
+	public async getMember(@Args('memberId') input: string, @AuthMember('_id') memberId: ObjectId): Promise<Member> {
 		console.log('Query: getMember');
 		const targetId = shapeIntoMongoObjectId(input);
-		return this.memberService.getMember(targetId);
+		return this.memberService.getMember(memberId, targetId);
 	}
 
 	/** ADMIN **/
