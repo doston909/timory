@@ -4,12 +4,14 @@ import { LoginInput, MemberInput } from '../../libs/dto/member/member.input';
 import { Member } from '../../libs/dto/member/member';
 import { UseGuards } from '@nestjs/common';
 import { AuthMember } from '../auth/decorators/authMember.decorator';
-import { AuthGuard } from '../auth/guards/auth.guard';
 import { ObjectId } from 'mongoose';
 import { MemberType } from '../../libs/enums/member.enum';
 import { Roles } from '../auth/decorators/roles.decorator';
-import { RolesGuard } from '../auth/guards/roles.guard';
+import { AuthGuard } from '../auth/guards/auth.guards';
+import { RolesGuard } from '../auth/guards/roles.guards';
 import { MemberUpdate } from '../../libs/dto/member/member.update';
+import { shapeIntoMongoObjectId } from '../../libs/config';
+
 
 
 @Resolver()
@@ -57,10 +59,12 @@ export class MemberResolver {
 	}
 
 	
-	@Query(() => String)
-	public async getMember(): Promise<string> {
+	
+	@Query(() => Member)
+	public async getMember(@Args("memberId") input: string): Promise<Member> {
 		console.log('Query: getMember');
-		return this.memberService.getMember();
+		const targetId = shapeIntoMongoObjectId(input);
+		return this.memberService.getMember(targetId);
 	}
 
 	/** ADMIN **/
