@@ -12,7 +12,7 @@
     "start:dev": "nest start --watch",
     "start:dev:batch": "nest start timory-batch --watch",
     "start:debug": "nest start --debug --watch",
-    "start:prod": "node dist/apps/timory/main",
+    "start:prod": "NODE_ENV=production node dist/apps/timory/main",
     "start:prod:batch": "node dist/apps/timory-batch/main",
     "lint": "eslint \"{src,apps,libs,test}/**/*.ts\" --fix",
     "test": "jest",
