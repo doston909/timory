@@ -5,7 +5,11 @@ import { Member } from '../../libs/dto/member/member';
 import { UseGuards } from '@nestjs/common';
 import { AuthMember } from '../auth/decorators/authMember.decorator';
 import { ObjectId } from 'mongoose';
+import { MemberType } from '../../libs/enums/member.enum';
+import { Roles } from '../auth/decorators/roles.decorator';
 import { AuthGuard } from '../auth/guards/auth.guards';
+import { RolesGuard } from '../auth/guards/roles.guards';
+
 
 
 @Resolver()
@@ -36,10 +40,18 @@ export class MemberResolver {
 
 	@UseGuards(AuthGuard)
 	@Query(() => String)
-	public async checkAuth(@AuthMember('memberNick') memberNick: string): Promise<string> { // bu yerda authMember ichidagi _idni memberIdga tenglab oldim
+	public async checkAuth(@AuthMember('memberNick') memberNick: string): Promise<string> { // bu yerda authMember ichidagi memberNickni memberNickga tenglab oldim
 		console.log('Query: checkAuth');
 		console.log('memberNick:', memberNick);
 		return `Hi ${memberNick}`;
+	}
+
+	@Roles(MemberType.USER, MemberType.AGENT)
+	@UseGuards(RolesGuard)
+	@Query(() => String)
+	public async checkAuthRoles(@AuthMember() authMember: Member): Promise<string> { // bu yerda authMember ichidagi memberNickni memberNickga tenglab oldim
+		console.log('Query: checkAuth');
+		return `Hi ${authMember.memberNick}, you are ${authMember.memberType}, (memberid: ${authMember._id})`;
 	}
 
 	@Query(() => String)
@@ -51,6 +63,8 @@ export class MemberResolver {
 	/** ADMIN **/
 
 	// Authorization: ADMIN
+	@Roles(MemberType.ADMIN) // bu methoddan faqat ADMIN foydalana oladi
+	@UseGuards(RolesGuard)
 	@Mutation(() => String)
 	public async getAllMembersByAdmin(): Promise<string> {
 		return this.memberService.getAllMembersByAdmin();

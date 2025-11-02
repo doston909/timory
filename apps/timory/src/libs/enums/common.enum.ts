@@ -17,4 +17,6 @@ export enum Message {
 	NOT_ALLOWED_REQUEST = 'Not Allowed Request!',
 	PROVIDE_ALLOWED_FORMAT = 'Please provide jpg, jpeg or png images!',
 	SWLF_SUBSCRIPTION_DENIED = 'Self subscription is denied!',
+	ALREADY_ADMIN = 'You cannot register as an ADMIN',
+	WRONG_SECRET_KEY = 'Invalid admin secret key',
 }

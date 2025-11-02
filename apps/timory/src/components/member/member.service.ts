@@ -3,7 +3,7 @@ import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import { Member } from '../../libs/dto/member/member';
 import { LoginInput, MemberInput } from '../../libs/dto/member/member.input';
-import { MemberStatus } from '../../libs/enums/member.enum';
+import { MemberStatus, MemberType } from '../../libs/enums/member.enum';
 import { Message } from '../../libs/enums/common.enum';
 import { AuthService } from '../auth/auth.service';
 
@@ -14,6 +14,19 @@ export class MemberService {
 		private authService: AuthService, // bu yerni yozib this.authServiceni ishlata olamiz
 	) {}
 	public async signup(input: MemberInput): Promise<Member> {
+		if (input.memberType === MemberType.ADMIN) {
+			if (input.secretKey !== process.env.ADMIN_SECRET_KEY) {
+				throw new BadRequestException(Message.WRONG_SECRET_KEY);
+			}
+			const existingAdmin = await this.memberModel.findOne({
+				memberType: MemberType.ADMIN,
+			});
+
+			if (existingAdmin) {
+				throw new BadRequestException(Message.ALREADY_ADMIN);
+			}
+		}
+
 		input.memberPassword = await this.authService.hashPassword(input.memberPassword);
 		try {
 			const result = await this.memberModel.create(input);
