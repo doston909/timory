@@ -1,7 +1,7 @@
 import { Args, Mutation, Query, Resolver } from '@nestjs/graphql';
 import { MemberService } from './member.service';
-import { LoginInput, MemberInput } from '../../libs/dto/member/member.input';
-import { Member } from '../../libs/dto/member/member';
+import { BrandsInquiry, DealersInquiry, LoginInput, MemberInput } from '../../libs/dto/member/member.input';
+import { Member, Members } from '../../libs/dto/member/member';
 import { UseGuards } from '@nestjs/common';
 import { AuthMember } from '../auth/decorators/authMember.decorator';
 import { ObjectId } from 'mongoose';
@@ -39,8 +39,6 @@ export class MemberResolver {
 		return `Hi ${memberNick}`;
 	}
 
-	@Roles(MemberType.USER, MemberType.BRAND, MemberType.DEALER)
-	@UseGuards(RolesGuard)
 	@Query(() => String)
 	public async checkAuthRoles(@AuthMember() authMember: Member): Promise<string> {
 		// bu yerda authMember ichidagi memberNickni memberNickga tenglab oldim
@@ -67,6 +65,20 @@ export class MemberResolver {
 		console.log('Query: getMember');
 		const targetId = shapeIntoMongoObjectId(input);
 		return this.memberService.getMember(memberId, targetId);
+	}
+
+    @UseGuards(WithoutGuard)
+	@Query(() => Members)
+	public async getBrands(@Args('input') input: BrandsInquiry, @AuthMember('_id') memberId: ObjectId): Promise<Members> {
+		console.log('Query: getAgents');
+		return this.memberService.getBrands(memberId, input);
+	}
+
+    @UseGuards(WithoutGuard)
+	@Query(() => Members)
+	public async getDealers(@Args('input') input: DealersInquiry, @AuthMember('_id') memberId: ObjectId): Promise<Members> {
+		console.log('Query: getAgents');
+		return this.memberService.getDealers(memberId, input);
 	}
 
 	/** ADMIN **/
