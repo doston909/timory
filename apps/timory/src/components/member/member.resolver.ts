@@ -1,6 +1,6 @@
 import { Args, Mutation, Query, Resolver } from '@nestjs/graphql';
 import { MemberService } from './member.service';
-import { BrandsInquiry, DealersInquiry, LoginInput, MemberInput } from '../../libs/dto/member/member.input';
+import { BrandsInquiry, DealersInquiry, LoginInput, MemberInput, MembersInquiry } from '../../libs/dto/member/member.input';
 import { Member, Members } from '../../libs/dto/member/member';
 import { UseGuards } from '@nestjs/common';
 import { AuthMember } from '../auth/decorators/authMember.decorator';
@@ -21,13 +21,13 @@ export class MemberResolver {
 	@Mutation(() => Member)
 	public async signup(@Args('input') input: MemberInput): Promise<Member> {
 		console.log('Mutation: signup');
-		return this.memberService.signup(input);
+		return await this.memberService.signup(input);
 	}
 
 	@Mutation(() => Member)
 	public async login(@Args('input') input: LoginInput): Promise<Member> {
 		console.log('Mutation: login');
-		return this.memberService.login(input);
+		return await this.memberService.login(input);
 	}
 
 	@UseGuards(AuthGuard)
@@ -56,7 +56,7 @@ export class MemberResolver {
 		// bu yerda authMember ichidagi _idni memberIdga tenglab oldim
 		console.log('Mutation: updateMember');
 		delete input._id;
-		return this.memberService.updateMember(memberId, input);
+		return await this.memberService.updateMember(memberId, input);
 	}
 
 	@UseGuards(WithoutGuard)
@@ -64,21 +64,21 @@ export class MemberResolver {
 	public async getMember(@Args('memberId') input: string, @AuthMember('_id') memberId: ObjectId): Promise<Member> {
 		console.log('Query: getMember');
 		const targetId = shapeIntoMongoObjectId(input);
-		return this.memberService.getMember(memberId, targetId);
+		return await this.memberService.getMember(memberId, targetId);
 	}
 
     @UseGuards(WithoutGuard)
 	@Query(() => Members)
 	public async getBrands(@Args('input') input: BrandsInquiry, @AuthMember('_id') memberId: ObjectId): Promise<Members> {
 		console.log('Query: getAgents');
-		return this.memberService.getBrands(memberId, input);
+		return await this.memberService.getBrands(memberId, input);
 	}
 
     @UseGuards(WithoutGuard)
 	@Query(() => Members)
 	public async getDealers(@Args('input') input: DealersInquiry, @AuthMember('_id') memberId: ObjectId): Promise<Members> {
 		console.log('Query: getAgents');
-		return this.memberService.getDealers(memberId, input);
+		return await this.memberService.getDealers(memberId, input);
 	}
 
 	/** ADMIN **/
@@ -86,15 +86,18 @@ export class MemberResolver {
 	// Authorization: ADMIN
 	@Roles(MemberType.ADMIN) // bu methoddan faqat ADMIN foydalana oladi
 	@UseGuards(RolesGuard)
-	@Mutation(() => String)
-	public async getAllMembersByAdmin(): Promise<string> {
-		return this.memberService.getAllMembersByAdmin();
+	@Query(() => Members)
+	public async getAllMembersByAdmin(@Args('input') input: MembersInquiry): Promise<Members> {
+		console.log('Query: getAllMembersByAdmin');
+		return await this.memberService.getAllMembersByAdmin(input);
 	}
 
 	// Authorization: ADMIN
-	@Mutation(() => String)
-	public async updateMemberByAdmin(): Promise<string> {
+	@Roles(MemberType.ADMIN) // bu methoddan faqat ADMIN foydalana oladi
+	@UseGuards(RolesGuard)
+	@Mutation(() => Member)
+	public async updateMemberByAdmin(@Args('input') input: MemberUpdate): Promise<Member> {
 		console.log('Mutation: updateMemberByAdmin');
-		return this.memberService.updateMemberByAdminMember();
+		return await this.memberService.updateMemberByAdminMember(input);
 	}
 }
