@@ -30,10 +30,10 @@ export class MemberInput {
 
 @InputType() 
 export class LoginInput {
-    @IsNotEmpty()
+    @IsNotEmpty()            // Pipes
     @Length(3, 12)
-    @Field(() => String)
-    memberNick: string;
+    @Field(() => String)     // GraphQl
+    memberNick: string;      // TypeScript
 
     @IsNotEmpty()
     @Length(5, 12)
