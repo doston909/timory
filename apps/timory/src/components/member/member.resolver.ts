@@ -39,9 +39,12 @@ export class MemberResolver {
 		return `Hi ${memberNick}`;
 	}
 
+	@Roles(MemberType.BRAND, MemberType.DEALER, MemberType.USER)
+	@UseGuards(RolesGuard)
 	@Query(() => String)
-	public async checkAuthRoles(@AuthMember() authMember: Member): Promise<string> {
-		// bu yerda authMember ichidagi memberNickni memberNickga tenglab oldim
+	public async checkAuthRoles(
+		@AuthMember() authMember: Member
+	): Promise<string> {			// bu yerda authMember ichidagi memberNickni memberNickga tenglab oldim
 		console.log('Query: checkAuth');
 		return `Hi ${authMember.memberNick}, you are ${authMember.memberType}, (memberid: ${authMember._id})`;
 	}
@@ -98,6 +101,6 @@ export class MemberResolver {
 	@Mutation(() => Member)
 	public async updateMemberByAdmin(@Args('input') input: MemberUpdate): Promise<Member> {
 		console.log('Mutation: updateMemberByAdmin');
-		return await this.memberService.updateMemberByAdminMember(input);
+		return await this.memberService.updateMemberByAdmin(input);
 	}
 }

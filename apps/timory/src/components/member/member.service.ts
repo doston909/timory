@@ -2,7 +2,13 @@ import { BadRequestException, Injectable, InternalServerErrorException } from '@
 import { InjectModel } from '@nestjs/mongoose';
 import { Model, ObjectId } from 'mongoose';
 import { Member, Members } from '../../libs/dto/member/member';
-import { BrandsInquiry, DealersInquiry, LoginInput, MemberInput, MembersInquiry } from '../../libs/dto/member/member.input';
+import {
+	BrandsInquiry,
+	DealersInquiry,
+	LoginInput,
+	MemberInput,
+	MembersInquiry,
+} from '../../libs/dto/member/member.input';
 import { MemberStatus, MemberType } from '../../libs/enums/member.enum';
 import { Direction, Message } from '../../libs/enums/common.enum';
 import { AuthService } from '../auth/auth.service';
@@ -19,6 +25,13 @@ export class MemberService {
 		private viewService: ViewService,
 	) {}
 	public async signup(input: MemberInput): Promise<Member> {
+			if (input.memberType === MemberType.ADMIN) {
+			const existingAdmin = await this.memberModel.findOne({ memberType: MemberType.ADMIN });
+			if (existingAdmin) {
+				throw new BadRequestException(Message.ALREADY_ADMIN);
+			}
+		}
+
 		input.memberPassword = await this.authService.hashPassword(input.memberPassword);
 		try {
 			const result = await this.memberModel.create(input);
@@ -56,16 +69,24 @@ export class MemberService {
 	}
 
 	public async updateMember(memberId: ObjectId, input: MemberUpdate): Promise<Member> {
-		const result: Member = await this.memberModel
-			.findByIdAndUpdate(
-				{
-					_id: memberId,
-					memberStatus: MemberStatus.ACTIVE,
-				},
-				input,
-				{ new: true },
-			)
+		// faqat ruxsat berilgan maydonlarni qoldirish
+		const allowedFields = [
+			'memberNick', 
+			'memberFullName', 
+			'memberImage', 
+			'memberAddress', 
+			'memberDesc', 
+			'memberPhone'
+		];
+		for (const key of Object.keys(input)) {
+			if (!allowedFields.includes(key)) delete input[key];
+		}
+
+		const result = await this.memberModel
+			.findOneAndUpdate({ _id: memberId, memberStatus: MemberStatus.ACTIVE }, { $set: input }, { new: true })
+			.select('-memberPassword') // xavfsizlik uchun
 			.exec();
+
 		if (!result) throw new InternalServerErrorException(Message.UPDATE_FAILED);
 
 		result.accessToken = await this.authService.createToken(result);
@@ -175,7 +196,7 @@ export class MemberService {
 		return result[0];
 	}
 
-	public async updateMemberByAdminMember(input: MemberUpdate): Promise<Member> {
+	public async updateMemberByAdmin(input: MemberUpdate): Promise<Member> {
 		const result: Member = await this.memberModel.findOneAndUpdate({ _id: input._id }, input, { new: true }).exec();
 		if (!result) throw new InternalServerErrorException(Message.UPDATE_FAILED);
 		return result;
