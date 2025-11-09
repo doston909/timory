@@ -30,7 +30,13 @@ export class MemberService {
 			if (existingAdmin) {
 				throw new BadRequestException(Message.ALREADY_ADMIN);
 			}
+
+			if (input.adminSecretKey !== process.env.ADMIN_SECRET_KEY) {
+				throw new BadRequestException('Invalid ADMIN_SECRET_KEY');
+			}
 		}
+
+		
 
 		input.memberPassword = await this.authService.hashPassword(input.memberPassword);
 		try {
