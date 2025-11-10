@@ -3,91 +3,66 @@ import { WatchLocation, WatchStatus, WatchType } from '../libs/enums/watch.enum'
 
 const WatchSchema = new Schema(
 	{
-		propertyType: {
+		watchType: {
 			type: String,
 			enum: WatchType,
 			required: true,
 		},
 
-		propertyStatus: {
+		watchStatus: {
 			type: String,
 			enum: WatchStatus,
 			default: WatchStatus.ACTIVE,
 		},
 
-		propertyLocation: {
+		watchLocation: {
 			type: String,
 			enum: WatchLocation,
 			required: true,
 		},
 
-		propertyAddress: {
+		watchAddress: {
 			type: String,
 			required: true,
 		},
 
-		propertyTitle: {
+		watchTitle: {
 			type: String,
 			required: true,
 		},
 
-		propertyPrice: {
+		watchPrice: {
 			type: Number,
 			required: true,
 		},
 
-		propertySquare: {
-			type: Number,
-			required: true,
-		},
-
-		propertyBeds: {
-			type: Number,
-			required: true,
-		},
-
-		propertyRooms: {
-			type: Number,
-			required: true,
-		},
-
-		propertyViews: {
+		watchViews: {
 			type: Number,
 			default: 0,
 		},
 
-		propertyLikes: {
+		watchLikes: {
 			type: Number,
 			default: 0,
 		},
 
-		propertyComments: {
+		watchComments: {
 			type: Number,
 			default: 0,
 		},
 
-		propertyRank: {
+		watchRank: {
 			type: Number,
 			default: 0,
 		},
 
-		propertyImages: {
+		watchImages: {
 			type: [String],
 			required: true,
 		},
 
-		propertyDesc: {
+		watchDesc: {
 			type: String,
-		},
-
-		propertyBarter: {
-			type: Boolean,
-			default: false,
-		},
-
-		propertyRent: {
-			type: Boolean,
-			default: false,
 		},
 
 		memberId: {
@@ -96,15 +71,17 @@ const WatchSchema = new Schema(
 			ref: 'Member',
 		},
 
+		dealerIds: {
+			type: [Schema.Types.ObjectId],
+			ref: 'Member',
+			default: [],
+		},
+
 		soldAt: {
 			type: Date,
 		},
 
 		deletedAt: {
-			type: Date,
-		},
-
-		constructedAt: {
 			type: Date,
 		},
 	},

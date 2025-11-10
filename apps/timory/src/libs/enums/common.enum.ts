@@ -21,6 +21,7 @@ export enum Message {
 	SWLF_SUBSCRIPTION_DENIED = 'Self subscription is denied!',
 	ALREADY_ADMIN = 'You cannot register as an ADMIN',
 	WRONG_SECRET_KEY = 'Invalid admin secret key',
+    NO_MEMBER_FOUND = "NO_MEMBER_FOUND",
 }
 
 export enum Direction {

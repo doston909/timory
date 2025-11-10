@@ -13,7 +13,7 @@ import { MemberStatus, MemberType } from '../../libs/enums/member.enum';
 import { Direction, Message } from '../../libs/enums/common.enum';
 import { AuthService } from '../auth/auth.service';
 import { MemberUpdate } from '../../libs/dto/member/member.update';
-import { T } from '../../libs/types/common';
+import { StatisticModifier, T } from '../../libs/types/common';
 import { ViewService } from '../view/view.service';
 import { ViewGroup } from '../../libs/enums/view.enum';
 
@@ -25,7 +25,7 @@ export class MemberService {
 		private viewService: ViewService,
 	) {}
 	public async signup(input: MemberInput): Promise<Member> {
-			if (input.memberType === MemberType.ADMIN) {
+		if (input.memberType === MemberType.ADMIN) {
 			const existingAdmin = await this.memberModel.findOne({ memberType: MemberType.ADMIN });
 			if (existingAdmin) {
 				throw new BadRequestException(Message.ALREADY_ADMIN);
@@ -35,8 +35,6 @@ export class MemberService {
 				throw new BadRequestException('Invalid ADMIN_SECRET_KEY');
 			}
 		}
-
-		
 
 		input.memberPassword = await this.authService.hashPassword(input.memberPassword);
 		try {
@@ -76,14 +74,7 @@ export class MemberService {
 
 	public async updateMember(memberId: ObjectId, input: MemberUpdate): Promise<Member> {
 		// faqat ruxsat berilgan maydonlarni qoldirish
-		const allowedFields = [
-			'memberNick', 
-			'memberFullName', 
-			'memberImage', 
-			'memberAddress', 
-			'memberDesc', 
-			'memberPhone'
-		];
+		const allowedFields = ['memberNick', 'memberFullName', 'memberImage', 'memberAddress', 'memberDesc', 'memberPhone'];
 		for (const key of Object.keys(input)) {
 			if (!allowedFields.includes(key)) delete input[key];
 		}
@@ -206,5 +197,44 @@ export class MemberService {
 		const result: Member = await this.memberModel.findOneAndUpdate({ _id: input._id }, input, { new: true }).exec();
 		if (!result) throw new InternalServerErrorException(Message.UPDATE_FAILED);
 		return result;
+	}
+
+	public async memberStatusEditor(input: StatisticModifier): Promise<Member> {
+		console.log('executed!');
+		const { _id, targetKey, modifier } = input;
+		return await this.memberModel.findByIdAndUpdate(_id, { $inc: { [targetKey]: modifier } }, { new: true }).exec();
+	}
+
+	// FOR WATCH SERVICE
+	public async getMemberById(memberId: string | ObjectId): Promise<Member> {
+		try {
+			const member = await this.memberModel.findById(memberId).lean().exec();
+			if (!member) throw new BadRequestException(Message.NO_MEMBER_FOUND);
+			return member;
+		} catch (err) {
+			console.log('Error in getMemberById:', err.message);
+			throw new BadRequestException(Message.NO_MEMBER_FOUND);
+		}
+	}
+
+	public async findDealersByIds(ids: string[]): Promise<Member[]> {
+		try {
+			if (!ids || !ids.length) return [];
+
+			const dealers = await this.memberModel
+				.find({
+					_id: { $in: ids },
+					memberType: MemberType.DEALER,
+					memberStatus: MemberStatus.ACTIVE,
+				})
+				.select('_id memberNick memberPhone')
+				.lean()
+				.exec();
+
+			return dealers;
+		} catch (err) {
+			console.log('Error in findDealersByIds:', err.message);
+			throw new BadRequestException('Not found Dealer Data!');
+		}
 	}
 }
