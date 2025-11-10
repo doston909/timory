@@ -1,6 +1,7 @@
 import { Field, Int, ObjectType } from '@nestjs/graphql';
 import { ObjectId } from 'mongoose';
 import { WatchLocation, WatchStatus, WatchType } from '../../enums/watch.enum';
+import { Member } from '../member/member';
 
 @ObjectType()
 export class Watch {
@@ -60,4 +61,7 @@ export class Watch {
 
 	@Field(() => Date)
 	updatedAt: Date;
+
+	@Field(() => Member, {nullable: true})
+	memberData?: Member;
 }

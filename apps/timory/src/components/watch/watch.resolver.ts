@@ -1,4 +1,4 @@
-import { Args, Mutation, Resolver } from '@nestjs/graphql';
+import { Args, Mutation, Query, Resolver } from '@nestjs/graphql';
 import { WatchService } from './watch.service';
 import { Watch } from '../../libs/dto/watch/watch';
 import { WatchInput } from '../../libs/dto/watch/watch.input';
@@ -8,6 +8,8 @@ import { UseGuards } from '@nestjs/common';
 import { AuthMember } from '../auth/decorators/authMember.decorator';
 import { ObjectId } from 'mongoose';
 import { RolesGuard } from '../auth/guards/roles.guards';
+import { shapeIntoMongoObjectId } from '../../libs/config';
+import { WithoutGuard } from '../auth/guards/without.guards';
 
 @Resolver()
 export class WatchResolver {
@@ -37,4 +39,14 @@ public async createDealerWatch(
 	return await this.watchService.createDealerWatch(input);
 }
 
+@UseGuards(WithoutGuard)
+@Query((returns) => Watch)
+public async getWatch(
+	@Args('watchId') input: string,
+	@AuthMember('_id') memberId: ObjectId,
+): Promise<Watch> {
+	console.log('Query: getWatch');
+	const watchtId = shapeIntoMongoObjectId(input);
+	return await this.watchService.getWatch(memberId, watchtId);
+}
 }
