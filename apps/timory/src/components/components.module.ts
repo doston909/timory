@@ -11,10 +11,10 @@ import { BoardArticleModule } from './board-article/board-article.module';
 @Module({
 	imports: [
 		MemberModule,
-    AuthModule,
+		AuthModule,
 		WatchModule,
-    BoardArticleModule,
-    LikeModule,
+		BoardArticleModule,
+		LikeModule,
 		ViewModule,
 		CommentModule,
 		FollowModule,
