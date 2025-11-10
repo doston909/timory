@@ -15,8 +15,11 @@ import { T } from './libs/types/common';
 		GraphQLModule.forRoot({
 			driver: ApolloDriver,
 			playground: true,
-			uploads: false,
 			autoSchemaFile: true,
+			uploads: false,
+			csrfPrevention: false,
+			path: '/graphql', 
+			context: ({ req, res }) => ({ req, res }), 
 			formatError: (error: T) => {
 				const graphqlFormattedError = {
 					code: error?.extensions.code,
@@ -29,7 +32,7 @@ import { T } from './libs/types/common';
 		}),
 		ComponentsModule,
 		DatabaseModule,
-	], // we can use .env file
+	], 											// we can use .env file
 	controllers: [AppController],
 	providers: [AppService, AppResolver],
 })
