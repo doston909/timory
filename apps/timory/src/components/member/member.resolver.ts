@@ -19,7 +19,7 @@ import { MemberUpdate } from '../../libs/dto/member/member.update';
 import { getSerialForImage, shapeIntoMongoObjectId, validMimeTypes } from '../../libs/config';
 import { WithoutGuard } from '../auth/guards/without.guards';
 import { GraphQLUpload, FileUpload } from 'graphql-upload';
-import { createWriteStream } from 'fs';
+import { createWriteStream, existsSync, mkdirSync } from 'fs';
 import { Message } from '../../libs/enums/common.enum';
 
 @Resolver()
@@ -114,7 +114,6 @@ export class MemberResolver {
 		return await this.memberService.updateMemberByAdmin(input);
 	}
 
-	
 	/** UPLOADER **/
 
 	@UseGuards(AuthGuard)
@@ -146,37 +145,43 @@ export class MemberResolver {
 	}
 
 	@UseGuards(AuthGuard)
-	@Mutation((returns) => [String])
+	@Mutation(() => [String])
 	public async imagesUploader(
-		@Args('files', { type: () => [GraphQLUpload] })
-		files: Promise<FileUpload>[],
-		@Args('target') target: String,
+		@Args('files', { type: () => [GraphQLUpload] }) files: Promise<FileUpload>[],
+		@Args('target') target: string,
 	): Promise<string[]> {
 		console.log('Mutation: imagesUploader');
 
-		const uploadedImages = [];
-		const promisedList = files.map(async (img: Promise<FileUpload>, index: number): Promise<Promise<void>> => {
+		const dir = `uploads/${target}`;
+		if (!existsSync(dir)) mkdirSync(dir, { recursive: true });
+
+		const uploadedImages: string[] = [];
+
+		const resolvedFiles = await Promise.all(files);
+
+		const promisedList = resolvedFiles.map(async (file, index) => {
 			try {
-				const { filename, mimetype, encoding, createReadStream } = await img;
+				const { filename, mimetype, createReadStream } = file;
 
 				const validMime = validMimeTypes.includes(mimetype);
 				if (!validMime) throw new Error(Message.PROVIDE_ALLOWED_FORMAT);
 
 				const imageName = getSerialForImage(filename);
-				const url = `uploads/${target}/${imageName}`;
+				const url = `${dir}/${imageName}`;
 				const stream = createReadStream();
 
 				const result = await new Promise((resolve, reject) => {
 					stream
 						.pipe(createWriteStream(url))
 						.on('finish', () => resolve(true))
-						.on('error', () => reject(false));
+						.on('error', (err) => reject(err));
 				});
+
 				if (!result) throw new Error(Message.UPLOAD_FAILED);
 
-				uploadedImages[index] = url;
+				uploadedImages.push(url);
 			} catch (err) {
-				console.log('Error, file missing!');
+				console.log('Error while uploading file:', err.message);
 			}
 		});
 
