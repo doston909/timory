@@ -22,7 +22,8 @@ export enum Message {
 	ALREADY_ADMIN = 'You cannot register as an ADMIN',
 	WRONG_SECRET_KEY = 'Invalid admin secret key',
     NO_MEMBER_FOUND = "NO_MEMBER_FOUND",
-}
+	ONLY_BRAND = "Only BRANDS ca create!",
+	ALREADY_CREATED = "This watch CREATED!"}
 
 export enum Direction {
 	ASC = 1,

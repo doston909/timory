@@ -56,7 +56,7 @@ const MemberSchema = new Schema(
 			type: String,
 		},
 
-		memberProperties: {
+		memberWatches: {
 			type: Number,
 			default: 0,
 		},

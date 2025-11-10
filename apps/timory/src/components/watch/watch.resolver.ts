@@ -10,6 +10,7 @@ import { ObjectId } from 'mongoose';
 import { RolesGuard } from '../auth/guards/roles.guards';
 import { shapeIntoMongoObjectId } from '../../libs/config';
 import { WithoutGuard } from '../auth/guards/without.guards';
+import { WatchUpdate } from '../../libs/dto/watch/watch.update';
 
 @Resolver()
 export class WatchResolver {
@@ -49,4 +50,17 @@ public async getWatch(
 	const watchtId = shapeIntoMongoObjectId(input);
 	return await this.watchService.getWatch(memberId, watchtId);
 }
+
+@Roles(MemberType.BRAND, MemberType.DEALER)
+@UseGuards(RolesGuard)
+@Mutation((returns) => Watch)
+public async updateWatch(
+    @Args('input') input: WatchUpdate,
+    @AuthMember('_id') memberId: ObjectId,
+): Promise<Watch> {
+    console.log("Mutation: updateWatch");
+    input._id = shapeIntoMongoObjectId(input._id);
+    return await this.watchService.updateWatch(memberId, input);
+}
+
 }

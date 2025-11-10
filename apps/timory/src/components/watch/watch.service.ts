@@ -10,6 +10,8 @@ import { ViewService } from '../view/view.service';
 import { StatisticModifier, T } from '../../libs/types/common';
 import { WatchStatus } from '../../libs/enums/watch.enum';
 import { ViewGroup } from '../../libs/enums/view.enum';
+import moment from 'moment';
+import { WatchUpdate } from '../../libs/dto/watch/watch.update';
 
 @Injectable()
 export class WatchService {
@@ -23,7 +25,7 @@ export class WatchService {
 		try {
 			const brand = await this.memberService.getMemberById(input.memberId);
 			if (!brand || brand.memberType !== MemberType.BRAND)
-				throw new BadRequestException('Faqat BRAND watch yaratishi mumkin.');
+				throw new BadRequestException(Message.ONLY_BRAND);
 
 			let dealerIds: string[] = [];
 
@@ -47,7 +49,7 @@ export class WatchService {
 			return result;
 		} catch (err) {
 			console.log('Error, createBrandWatch:', err.message);
-			throw new BadRequestException('Soat yaratishda xatolik yuz berdi.');
+			throw new BadRequestException(Message.ALREADY_CREATED);
 		}
 	}
 
@@ -111,5 +113,34 @@ export class WatchService {
 				},
 			)
 			.exec();
+	}
+
+	public async updateWatch(memberId: ObjectId, input: WatchUpdate): Promise<Watch> {
+		let { watchStatus, soldAt, deletedAt } = input;
+		const search: T = {
+			_id: input._id,
+			memberId: memberId,
+			watchStatus: WatchStatus.ACTIVE,
+		};
+
+		if (watchStatus === WatchStatus.SOLD) soldAt = moment().toDate();
+		else if (watchStatus === WatchStatus.DELETE) deletedAt = moment().toDate();
+
+		const result = await this.watchModel
+			.findByIdAndUpdate(search, input, {
+				new: true,
+			})
+			.exec();
+		if (!result) throw new InternalServerErrorException(Message.UPDATE_FAILED);
+
+		if (soldAt || deletedAt) {
+			await this.memberService.memberStatusEditor({
+				_id: memberId,
+				targetKey: 'memberWatches',
+				modifier: -1,
+			});
+		}
+
+		return result;
 	}
 }
