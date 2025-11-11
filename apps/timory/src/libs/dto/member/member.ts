@@ -40,8 +40,6 @@ export class Member {
 	@Field(() => String, { nullable: true })
 	memberDesc?: string;
 
-	@Field(() => Int)
-	memberProperties: number;
 
 	@Field(() => Int)
 	memberArticles: number;

@@ -190,4 +190,5 @@ export class MemberResolver {
 		await Promise.all(promisedList);
 		return uploadedImages;
 	}
+	
 }

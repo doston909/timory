@@ -123,26 +123,26 @@ class WISearch {
 	@IsOptional()
 	@IsIn(availableWatchOptions, { each: true })
 	@Field(() => [String], { nullable: true })
-	options?: string[]; // Qo‘shimcha funksiyalar
+	options?: string[]; 
 
 	@IsOptional()
 	@Field(() => PricesRange, { nullable: true })
-	pricesRange?: PricesRange; // Narx oralig‘i
+	pricesRange?: PricesRange; 
 
 	@IsOptional()
 	@Field(() => SizesRange, { nullable: true })
-	sizesRange?: SizesRange; // Korpus diametri (mm)
+	sizesRange?: SizesRange; 
 
 	@IsOptional()
 	@Field(() => PeriodsRange, { nullable: true })
-	periodsRange?: PeriodsRange; // Qo‘shilgan vaqt oralig‘i
+	periodsRange?: PeriodsRange; 
 
 	@IsOptional()
 	@Field(() => String, { nullable: true })
-	text?: string; // Matnli qidiruv: model nomi, brend, tavsif
+	text?: string; 
 }
 
-// --- Main Inquiry ---
+
 @InputType()
 export class WatchesInquiry {
 	@IsNotEmpty()
@@ -167,4 +167,91 @@ export class WatchesInquiry {
 	@IsNotEmpty()
 	@Field(() => WISearch)
 	search: WISearch;
+}
+
+@InputType()
+class BWISearch {
+  @IsOptional()
+  @Field(() => WatchStatus, { nullable: true })
+  watchStatus?: WatchStatus;
+
+  @IsOptional()
+  @Field(() => String, { nullable: true })
+  brandId?: string;
+
+  @IsOptional()
+  @Field(() => String, { nullable: true })
+  text?: string;
+}
+
+@InputType()
+export class BrandWatchesInquiry {
+  @IsNotEmpty()
+  @Min(1)
+  @Field(() => Int)
+  page: number;
+
+  @IsNotEmpty()
+  @Min(1)
+  @Field(() => Int)
+  limit: number;
+
+  @IsOptional()
+  @IsIn(availableWatchSorts)
+  @Field(() => String, { nullable: true })
+  sort?: string;
+
+  @IsOptional()
+  @Field(() => Direction, { nullable: true })
+  direction?: Direction;
+
+  @IsNotEmpty()
+  @Field(() => BWISearch)
+  search: BWISearch;
+}
+
+
+@InputType()
+class DWISearch {
+  @IsOptional()
+  @Field(() => WatchStatus, { nullable: true })
+  watchStatus?: WatchStatus;
+
+  @IsOptional()
+  @Field(() => String, { nullable: true })
+  dealerId?: string;
+
+  @IsOptional()
+  @Field(() => String, { nullable: true })
+  brandId?: string;
+
+  @IsOptional()
+  @Field(() => String, { nullable: true })
+  text?: string;
+}
+
+@InputType()
+export class DealerWatchesInquiry {
+  @IsNotEmpty()
+  @Min(1)
+  @Field(() => Int)
+  page: number;
+
+  @IsNotEmpty()
+  @Min(1)
+  @Field(() => Int)
+  limit: number;
+
+  @IsOptional()
+  @IsIn(availableWatchSorts)
+  @Field(() => String, { nullable: true })
+  sort?: string;
+
+  @IsOptional()
+  @Field(() => Direction, { nullable: true })
+  direction?: Direction;
+
+  @IsNotEmpty()
+  @Field(() => DWISearch)
+  search: DWISearch;
 }

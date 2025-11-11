@@ -3,7 +3,12 @@ import { InjectModel } from '@nestjs/mongoose';
 import { Model, ObjectId } from 'mongoose';
 import { Watch, Watches } from '../../libs/dto/watch/watch';
 import { MemberService } from '../member/member.service';
-import { WatchesInquiry, WatchInput } from '../../libs/dto/watch/watch.input';
+import {
+	BrandWatchesInquiry,
+	DealerWatchesInquiry,
+	WatchesInquiry,
+	WatchInput,
+} from '../../libs/dto/watch/watch.input';
 import { Direction, Message } from '../../libs/enums/common.enum';
 import { MemberType } from '../../libs/enums/member.enum';
 import { ViewService } from '../view/view.service';
@@ -228,5 +233,119 @@ export class WatchService {
 				[`options.${opt}`]: true,
 			}));
 		}
+	}
+
+	public async getBrandWatches(memberId: ObjectId, input: BrandWatchesInquiry): Promise<Watches> {
+		const { watchStatus, text } = input.search;
+
+		if (watchStatus === WatchStatus.DELETE) {
+			throw new BadRequestException(Message.NOT_ALLOWED_REQUEST);
+		}
+
+		const match: T = {
+			memberId: memberId,
+			watchStatus: watchStatus ?? { $ne: WatchStatus.DELETE },
+		};
+
+		if (text) {
+			match.$or = [
+				{ watchTitle: { $regex: new RegExp(text, 'i') } },
+				{ description: { $regex: new RegExp(text, 'i') } },
+			];
+		}
+		console.log('match:', match);
+
+
+		const sort: T = {
+			[input?.sort ?? 'createdAt']: input?.direction ?? Direction.DESC,
+		};
+
+		const result = await this.watchModel
+			.aggregate([
+				{ $match: match },
+				{ $sort: sort },
+				{
+					$facet: {
+						list: [
+							{ $skip: (input.page - 1) * input.limit },
+							{ $limit: input.limit },
+							{
+								$lookup: {
+									from: 'members',
+									localField: 'memberId',
+									foreignField: '_id',
+									as: 'memberData',
+								},
+							},
+							{ $unwind: '$memberData' },
+						],
+						metaCounter: [{ $count: 'total' }],
+					},
+				},
+			])
+			.exec();
+
+		if (!result.length) {
+			throw new InternalServerErrorException(Message.NO_DATA_FOUND);
+		}
+
+		return result[0];
+	}
+
+	public async getDealerWatches(memberId: ObjectId, input: DealerWatchesInquiry): Promise<Watches> {
+		const { watchStatus, brandId, text } = input.search;
+
+		if (watchStatus === WatchStatus.DELETE) {
+			throw new BadRequestException(Message.NOT_ALLOWED_REQUEST);
+		}
+
+		const match: T = {
+			memberId: memberId,
+			watchStatus: watchStatus ?? { $ne: WatchStatus.DELETE },
+		};
+
+		if (brandId) match.brandId = shapeIntoMongoObjectId(brandId);
+
+		if (text) {
+			match.$or = [
+				{ watchTitle: { $regex: new RegExp(text, 'i') } },
+				{ description: { $regex: new RegExp(text, 'i') } },
+			];
+		}
+
+		const sort: T = {
+			[input?.sort ?? 'createdAt']: input?.direction ?? Direction.DESC,
+		};
+
+		const result = await this.watchModel
+			.aggregate([
+				{ $match: match },
+				{ $sort: sort },
+				{
+					$facet: {
+						list: [
+							{ $skip: (input.page - 1) * input.limit },
+							{ $limit: input.limit },
+							{
+								$lookup: {
+									from: 'members',
+									localField: 'memberId',
+									foreignField: '_id',
+									as: 'memberData',
+								},
+							},
+							{ $unwind: '$memberData' },
+						],
+						metaCounter: [{ $count: 'total' }],
+					},
+				},
+			])
+			.exec();
+
+		if (!result.length) {
+			throw new InternalServerErrorException(Message.NO_DATA_FOUND);
+		}
+
+		return result[0];
 	}
 }

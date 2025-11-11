@@ -44,7 +44,7 @@ export class Watch {
 	@Field(() => String, { nullable: true })
 	watchDesc?: string;
 
-	@Field(() => String)
+	@Field(() => String, { nullable: true })
 	brandId: ObjectId;
 
 	@Field(() => String)
