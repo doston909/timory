@@ -1,7 +1,7 @@
 import { Args, Mutation, Query, Resolver } from '@nestjs/graphql';
 import { WatchService } from './watch.service';
-import { Watch } from '../../libs/dto/watch/watch';
-import { WatchInput } from '../../libs/dto/watch/watch.input';
+import { Watch, Watches } from '../../libs/dto/watch/watch';
+import { WatchesInquiry, WatchInput } from '../../libs/dto/watch/watch.input';
 import { Roles } from '../auth/decorators/roles.decorator';
 import { MemberType } from '../../libs/enums/member.enum';
 import { UseGuards } from '@nestjs/common';
@@ -62,5 +62,15 @@ public async updateWatch(
     input._id = shapeIntoMongoObjectId(input._id);
     return await this.watchService.updateWatch(memberId, input);
 }
+
+@UseGuards(WithoutGuard)
+	@Query((returns) => Watches)
+	public async getWatches(
+		@Args('input') input: WatchesInquiry,
+		@AuthMember('_id') memberId: ObjectId,
+	): Promise<Watches> {
+		console.log('Query: getWatches');
+		return await this.watchService.getWatches(memberId, input);
+	}
 
 }

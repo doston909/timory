@@ -1,10 +1,10 @@
 import { BadRequestException, ForbiddenException, Injectable, InternalServerErrorException } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model, ObjectId } from 'mongoose';
-import { Watch } from '../../libs/dto/watch/watch';
+import { Watch, Watches } from '../../libs/dto/watch/watch';
 import { MemberService } from '../member/member.service';
-import { WatchInput } from '../../libs/dto/watch/watch.input';
-import { Message } from '../../libs/enums/common.enum';
+import { WatchesInquiry, WatchInput } from '../../libs/dto/watch/watch.input';
+import { Direction, Message } from '../../libs/enums/common.enum';
 import { MemberType } from '../../libs/enums/member.enum';
 import { ViewService } from '../view/view.service';
 import { StatisticModifier, T } from '../../libs/types/common';
@@ -12,6 +12,7 @@ import { WatchStatus } from '../../libs/enums/watch.enum';
 import { ViewGroup } from '../../libs/enums/view.enum';
 import moment from 'moment';
 import { WatchUpdate } from '../../libs/dto/watch/watch.update';
+import { lookupMember, shapeIntoMongoObjectId } from '../../libs/config';
 
 @Injectable()
 export class WatchService {
@@ -24,8 +25,7 @@ export class WatchService {
 	public async createBrandWatch(input: WatchInput): Promise<Watch> {
 		try {
 			const brand = await this.memberService.getMemberById(input.memberId);
-			if (!brand || brand.memberType !== MemberType.BRAND)
-				throw new BadRequestException(Message.ONLY_BRAND);
+			if (!brand || brand.memberType !== MemberType.BRAND) throw new BadRequestException(Message.ONLY_BRAND);
 
 			let dealerIds: string[] = [];
 
@@ -142,5 +142,91 @@ export class WatchService {
 		}
 
 		return result;
+	}
+
+	public async getWatches(memberId: ObjectId, input: WatchesInquiry): Promise<Watches> {
+		const match: T = { watchStatus: WatchStatus.ACTIVE };
+		const sort: T = { [input?.sort ?? 'createdAt']: input?.direction ?? Direction.DESC };
+
+		this.shapeMatchQuery(match, input);
+		console.log('match:', match);
+
+		const result = await this.watchModel
+			.aggregate([
+				{ $match: match },
+				{ $sort: sort },
+				{
+					$facet: {
+						list: [
+							{ $skip: (input.page - 1) * input.limit },
+							{ $limit: input.limit },
+							// meLiked
+							lookupMember,
+							{ $unwind: '$memberData' },
+						],
+						metaCounter: [{ $count: 'total' }],
+					},
+				},
+			])
+			.exec();
+		if (!result.length) throw new InternalServerErrorException(Message.NO_DATA_FOUND);
+
+		return result[0];
+	}
+
+	private shapeMatchQuery(match: T, input: WatchesInquiry): void {
+		const {
+			brandId,
+			dealerId,
+			locationList,
+			typeList,
+			statusList,
+			pricesRange,
+			sizesRange,
+			periodsRange,
+			options,
+			text,
+		} = input.search;
+
+		if (brandId) match.brandId = shapeIntoMongoObjectId(brandId);
+		if (dealerId) match.dealerId = shapeIntoMongoObjectId(dealerId);
+
+		if (locationList && locationList.length > 0) match.watchLocation = { $in: locationList };
+
+		if (typeList && typeList.length > 0) match.watchType = { $in: typeList };
+
+		if (statusList && statusList.length > 0) match.watchStatus = { $in: statusList };
+
+		if (pricesRange)
+			match.watchPrice = {
+				$gte: pricesRange.start,
+				$lte: pricesRange.end,
+			};
+
+		if (sizesRange)
+			match.watchSize = {
+				$gte: sizesRange.start,
+				$lte: sizesRange.end,
+			};
+
+		if (periodsRange)
+			match.createdAt = {
+				$gte: periodsRange.start,
+				$lte: periodsRange.end,
+			};
+
+		if (text && text.trim().length > 0)
+			match.$or = [
+				{ watchTitle: { $regex: new RegExp(text, 'i') } },
+				{ watchModel: { $regex: new RegExp(text, 'i') } },
+				{ brandName: { $regex: new RegExp(text, 'i') } },
+				{ description: { $regex: new RegExp(text, 'i') } },
+			];
+
+		if (options && options.length > 0) {
+			match.$and = options.map((opt) => ({
+				[`options.${opt}`]: true,
+			}));
+		}
 	}
 }

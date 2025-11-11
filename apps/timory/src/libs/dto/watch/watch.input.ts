@@ -1,7 +1,10 @@
 import { Field, InputType, Int } from '@nestjs/graphql';
-import { IsNotEmpty, IsOptional, Length } from 'class-validator';
-import { WatchLocation, WatchType } from '../../enums/watch.enum';
+import { IsIn, IsNotEmpty, IsOptional, Length, Min } from 'class-validator';
+import { WatchLocation, WatchStatus, WatchType } from '../../enums/watch.enum';
 import { ObjectId } from 'mongoose';
+
+import { Direction } from '../../enums/common.enum';
+import { availableWatchOptions, availableWatchSorts } from '../../config';
 
 @InputType()
 export class WatchInput {
@@ -65,4 +68,103 @@ export class WatchInput {
 	@IsOptional()
 	@Field(() => Date, { nullable: true })
 	makedAt?: Date;
+}
+
+@InputType()
+export class PricesRange {
+	@Field(() => Int)
+	start: number;
+
+	@Field(() => Int)
+	end: number;
+}
+
+@InputType()
+export class SizesRange {
+	@Field(() => Int)
+	start: number;
+
+	@Field(() => Int)
+	end: number;
+}
+
+@InputType()
+export class PeriodsRange {
+	@Field(() => Date)
+	start: Date;
+
+	@Field(() => Date)
+	end: Date;
+}
+
+// --- Search Filter ---
+@InputType()
+class WISearch {
+	@IsOptional()
+	@Field(() => String, { nullable: true })
+	brandId?: ObjectId;
+
+	@IsOptional()
+	@Field(() => String, { nullable: true })
+	dealerId?: ObjectId; 
+
+	@IsOptional()
+	@Field(() => [WatchType], { nullable: true })
+	typeList?: WatchType[]; 
+
+	@IsOptional()
+	@Field(() => [WatchStatus], { nullable: true })
+	statusList?: WatchStatus[]; 
+
+	@IsOptional()
+	@Field(() => [WatchLocation], { nullable: true })
+	locationList?: WatchLocation[]; 
+
+	@IsOptional()
+	@IsIn(availableWatchOptions, { each: true })
+	@Field(() => [String], { nullable: true })
+	options?: string[]; // Qo‘shimcha funksiyalar
+
+	@IsOptional()
+	@Field(() => PricesRange, { nullable: true })
+	pricesRange?: PricesRange; // Narx oralig‘i
+
+	@IsOptional()
+	@Field(() => SizesRange, { nullable: true })
+	sizesRange?: SizesRange; // Korpus diametri (mm)
+
+	@IsOptional()
+	@Field(() => PeriodsRange, { nullable: true })
+	periodsRange?: PeriodsRange; // Qo‘shilgan vaqt oralig‘i
+
+	@IsOptional()
+	@Field(() => String, { nullable: true })
+	text?: string; // Matnli qidiruv: model nomi, brend, tavsif
+}
+
+// --- Main Inquiry ---
+@InputType()
+export class WatchesInquiry {
+	@IsNotEmpty()
+	@Min(1)
+	@Field(() => Int)
+	page: number;
+
+	@IsNotEmpty()
+	@Min(1)
+	@Field(() => Int)
+	limit: number;
+
+	@IsOptional()
+	@IsIn(availableWatchSorts)
+	@Field(() => String, { nullable: true })
+	sort?: string; 
+
+	@IsOptional()
+	@Field(() => Direction, { nullable: true })
+	direction?: Direction;
+
+	@IsNotEmpty()
+	@Field(() => WISearch)
+	search: WISearch;
 }

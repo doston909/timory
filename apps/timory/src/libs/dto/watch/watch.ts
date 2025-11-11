@@ -1,7 +1,7 @@
 import { Field, Int, ObjectType } from '@nestjs/graphql';
 import { ObjectId } from 'mongoose';
 import { WatchLocation, WatchStatus, WatchType } from '../../enums/watch.enum';
-import { Member } from '../member/member';
+import { Member, TotalCounter } from '../member/member';
 
 @ObjectType()
 export class Watch {
@@ -45,10 +45,10 @@ export class Watch {
 	watchDesc?: string;
 
 	@Field(() => String)
-	memberId: ObjectId;
+	brandId: ObjectId;
 
-	@Field(() => [String], { nullable: true })
-	dealerIds?: string[];
+	@Field(() => String)
+	memberId: ObjectId;
 
 	@Field(() => Date, { nullable: true })
 	soldAt?: Date;
@@ -62,6 +62,15 @@ export class Watch {
 	@Field(() => Date)
 	updatedAt: Date;
 
-	@Field(() => Member, {nullable: true})
+	@Field(() => Member, { nullable: true })
 	memberData?: Member;
+}
+
+@ObjectType()
+export class Watches {
+	@Field(() => [Watch])
+	list: Watch[];
+
+	@Field(() => [TotalCounter], { nullable: true })
+	metaCounter: TotalCounter[];
 }

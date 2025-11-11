@@ -20,5 +20,9 @@ import { MemberModule } from '../member/member.module';
     MemberModule
 	],
 	providers: [WatchResolver, WatchService],
+	exports: [
+		MongooseModule, 
+		WatchService,   
+	],
 })
 export class WatchModule {}

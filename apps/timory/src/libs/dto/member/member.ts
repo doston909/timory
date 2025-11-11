@@ -1,6 +1,7 @@
 import { Field, Int, ObjectType } from '@nestjs/graphql';
 import { MemberAuthType, MemberStatus, MemberType } from '../../enums/member.enum';
 import { ObjectId } from 'mongoose';
+import { Watch } from '../watch/watch';
 
 @ObjectType()
 export class Member {
@@ -21,6 +22,9 @@ export class Member {
 
 	@Field(() => String)
 	memberNick: string;
+
+	@Field(() => [Watch], { nullable: true })
+    memberWatches?: Watch[];
 
 	memberPassword?: string;
 

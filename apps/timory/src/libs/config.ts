@@ -3,6 +3,22 @@ import { ObjectId } from 'bson';
 export const availableBrandSorts = ['createdAt', 'updatedAt', 'memberLikes', 'memberViews', 'memberRank'];
 export const availableDealerSorts = ['createdAt', 'updatedAt', 'memberLikes', 'memberViews', 'memberRank'];
 export const availableMembersSorts = ['createdAt', 'updatedAt', 'memberLikes', 'memberViews'];
+export const availableWatchSorts = [
+	'createdAt',
+	'updatedAt',
+	'watchLikes',
+	'watchViews',
+	'watchyRank',
+	'watchPrice',
+];
+export const availableWatchOptions = [
+  'AUTOMATIC',
+  'CHRONOGRAPH',
+  'WATER_RESISTANT',
+  'LIMITED_EDITION',
+  'DATE_DISPLAY',
+  'POWER_RESERVE',
+];
 
  /** IMAGE CONFIGURATION **/
 import { v4 as uuidv4 } from 'uuid';
@@ -16,4 +32,13 @@ export const getSerialForImage = (filename: string) => {
 
 export const shapeIntoMongoObjectId = (target: any) => {
     return typeof target === "string" ? new ObjectId(target) : target;
+};
+
+export const lookupMember = {
+	$lookup: {
+		from: 'members',
+		localField: 'memberId',
+		foreignField: '_id',
+		as: 'memberData',
+	},
 };

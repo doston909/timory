@@ -16,11 +16,13 @@ import { MemberUpdate } from '../../libs/dto/member/member.update';
 import { StatisticModifier, T } from '../../libs/types/common';
 import { ViewService } from '../view/view.service';
 import { ViewGroup } from '../../libs/enums/view.enum';
+import { Watch } from '../../libs/dto/watch/watch';
 
 @Injectable()
 export class MemberService {
 	constructor(
 		@InjectModel('Member') private readonly memberModel: Model<Member>,
+		@InjectModel('Watch') private readonly watchModel: Model<Watch>,
 		private authService: AuthService, // bu yerni yozib this.authServiceni ishlata olamiz
 		private viewService: ViewService,
 	) {}
