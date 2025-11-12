@@ -28,7 +28,7 @@ export class MemberInput {
 	@Field(() => MemberAuthType, { nullable: true }) // MemberAuthType shaklida data qaytarishi va bo'sh bo'lishi mumkinligi sharti
 	memberAuthType?: MemberAuthType; // memberAuthType type MemberAuthType bo'lishi sharti
 
-	@IsNotEmpty()
+	@IsOptional()
 	@Field(() => String, { nullable: true })
 	adminSecretKey?: string;
 }

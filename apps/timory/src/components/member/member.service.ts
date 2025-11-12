@@ -25,15 +25,12 @@ import { LikeGroup } from '../../libs/enums/like.enum';
 export class MemberService {
 	constructor(
 		@InjectModel('Member') private readonly memberModel: Model<Member>,
-		@InjectModel('Watch') private readonly watchModel: Model<Watch>,
 		private authService: AuthService, // bu yerni yozib this.authServiceni ishlata olamiz
 		private viewService: ViewService,
 		private likeService: LikeService,
 	) {}
 
 	public async signup(input: MemberInput): Promise<Member> {
-
-		if (!input.memberType) input.memberType = MemberType.USER;
 		if (input.memberType === MemberType.ADMIN) {
 			const existingAdmin = await this.memberModel.findOne({ memberType: MemberType.ADMIN });
 			if (existingAdmin) {
@@ -41,7 +38,7 @@ export class MemberService {
 			}
 
 			if (input.adminSecretKey !== process.env.ADMIN_SECRET_KEY) {
-				throw new BadRequestException('Invalid ADMIN_SECRET_KEY');
+				throw new BadRequestException('Invalid or empty ADMIN_SECRET_KEY');
 			}
 		}
 
@@ -191,7 +188,7 @@ export class MemberService {
 		const match: T = {};
 		const sort: T = { [input?.sort ?? 'createdAt']: input?.direction ?? Direction.DESC };
 
-		if (memberStatus) match.memberStatus = memberStatus; // darsda shu yer katta harfda yozilgan, shuning uchun code ishlamadi
+		if (memberStatus) match.memberStatus = memberStatus;
 		if (memberType) match.memberType = memberType;
 		if (text) match.memberNick = { $regex: new RegExp(text, 'i') };
 		console.log('match:', match);
