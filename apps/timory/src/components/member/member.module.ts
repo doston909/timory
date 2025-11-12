@@ -6,7 +6,7 @@ import MemberSchema from '../../schemas/Member.model';
 import { AuthModule } from '../auth/auth.module';
 import { ViewModule } from '../view/view.module';
 import WatchSchema from '../../schemas/Watch.model';
-import { WatchModule } from '../watch/watch.module';
+import { LikeModule } from '../like/like.module';
 
 @Module({
   imports: [MongooseModule.forFeature([
@@ -17,6 +17,7 @@ import { WatchModule } from '../watch/watch.module';
   ]), 
   AuthModule, // Schema Model
   ViewModule,  // Schema Model
+  LikeModule,
 ],   
   providers: [
     MemberResolver, 

@@ -23,8 +23,8 @@ export class Member {
 	@Field(() => String)
 	memberNick: string;
 
-	@Field(() => [Watch], { nullable: true })
-    memberWatches?: Watch[];
+	@Field(() => Int)
+    memberWatches?: Watch;
 
 	memberPassword?: string;
 
