@@ -14,7 +14,7 @@ import { lookupMember } from '../../libs/config';
 
 @Injectable()
 export class CommentService {
-    constructor(
+	constructor(
 		@InjectModel('Comment') private readonly commentModel: Model<Comment>,
 		private readonly memberService: MemberService,
 		private readonly watchService: WatchService,
@@ -99,9 +99,22 @@ export class CommentService {
 					},
 				},
 			])
-            .exec();
+			.exec();
 		if (!result.length) throw new InternalServerErrorException(Message.NO_DATA_FOUND);
 
 		return result[0];
+	}
+
+	public async removeCommentByAdmin(commentId: ObjectId): Promise<Comment> {
+		const search: T = {
+			_id: commentId,
+			commentStatus: CommentStatus.DELETE,
+		};
+
+		const result = await this.commentModel.findOneAndDelete(search).exec();
+
+		if (!result) throw new InternalServerErrorException(Message.REMOVE_FAILED);
+
+		return result;
 	}
 }
