@@ -122,15 +122,15 @@ export class WatchService {
 	}
 
 	public async updateWatch(memberId: ObjectId, input: WatchUpdate): Promise<Watch> {
-		let { watchStatus, soldAt, deletedAt } = input;
+		let { watchStatus } = input;
 		const search: T = {
 			_id: input._id,
 			memberId: memberId,
 			watchStatus: WatchStatus.ACTIVE,
 		};
 
-		if (watchStatus === WatchStatus.SOLD) soldAt = moment().toDate();
-		else if (watchStatus === WatchStatus.DELETE) deletedAt = moment().toDate();
+		if (watchStatus === WatchStatus.SOLD) input.soldAt = moment().toDate();
+		else if (watchStatus === WatchStatus.DELETE) input.deletedAt = moment().toDate();
 
 		const result = await this.watchModel
 			.findByIdAndUpdate(search, input, {
@@ -139,7 +139,7 @@ export class WatchService {
 			.exec();
 		if (!result) throw new InternalServerErrorException(Message.UPDATE_FAILED);
 
-		if (soldAt || deletedAt) {
+		if (input.soldAt || input.deletedAt) {
 			await this.memberService.memberStatusEditor({
 				_id: memberId,
 				targetKey: 'memberWatches',
