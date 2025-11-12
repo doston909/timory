@@ -1,7 +1,7 @@
 import { Args, Mutation, Query, Resolver } from '@nestjs/graphql';
 import { WatchService } from './watch.service';
 import { Watch, Watches } from '../../libs/dto/watch/watch';
-import { BrandWatchesInquiry, DealerWatchesInquiry, WatchesInquiry, WatchInput } from '../../libs/dto/watch/watch.input';
+import { AllWatchesInquiry, BrandWatchesInquiry, DealerWatchesInquiry, WatchesInquiry, WatchInput } from '../../libs/dto/watch/watch.input';
 import { Roles } from '../auth/decorators/roles.decorator';
 import { MemberType } from '../../libs/enums/member.enum';
 import { UseGuards } from '@nestjs/common';
@@ -87,5 +87,17 @@ export class WatchResolver {
 	): Promise<Watches> {
 		console.log('Query: getDealerWatches');
 		return await this.watchService.getDealerWatches(memberId, input);
+	}
+
+	/** ADMIN **/
+	@Roles(MemberType.ADMIN)
+	@UseGuards(RolesGuard)
+	@Query((returns) => Watches)
+	public async getAllWatchesByAdmin(
+		@Args('input') input: AllWatchesInquiry,
+		@AuthMember('_id') memberId: ObjectId,
+	): Promise<Watches> {
+		console.log('Query: getAllWatchesByAdmin');
+		return await this.watchService.getAllWatchesByAdmin(input);
 	}
 }

@@ -255,3 +255,44 @@ export class DealerWatchesInquiry {
   @Field(() => DWISearch)
   search: DWISearch;
 }
+
+@InputType()
+class ALWISearch {
+	@IsOptional()
+	@Field(() => WatchStatus, { nullable: true })
+	watchStatus?: WatchStatus;
+
+	@IsOptional()
+	@Field(() => [WatchLocation], { nullable: true })
+	watchLocationList?: WatchLocation[];
+
+	@IsOptional()
+	@Field(() => [WatchType], { nullable: true })
+	watchTypeList?: WatchType[];
+}
+
+@InputType()
+export class AllWatchesInquiry {
+	@IsNotEmpty()
+	@Min(1)
+	@Field(() => Int)
+	page: number;
+
+	@IsNotEmpty()
+	@Min(1)
+	@Field(() => Int)
+	limit: number;
+
+	@IsOptional()
+	@IsIn(availableWatchSorts)
+	@Field(() => String, { nullable: true })
+	sort?: string;
+
+	@IsOptional()
+	@Field(() => Direction, { nullable: true })
+	direction?: Direction;
+
+	@IsNotEmpty()
+	@Field(() => ALWISearch)
+	search: ALWISearch;
+}
