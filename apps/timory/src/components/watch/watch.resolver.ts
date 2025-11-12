@@ -108,4 +108,13 @@ export class WatchResolver {
 		console.log('Mutation: updatePropertyByAdmin');
 		return await this.watchService.updateWatchByAdmin(input);
 	}
+
+	@Roles(MemberType.ADMIN)
+	@UseGuards(RolesGuard)
+	@Mutation((returns) => Watch)
+	public async removeWatchByAdmin(@Args('propertyId') input: string): Promise<Watch> {
+		console.log('Mutation: removePropertyByAdmin');
+		const watchId = shapeIntoMongoObjectId(input);
+		return await this.watchService.removeWatchByAdmin(watchId);
+	}
 }

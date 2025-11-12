@@ -407,5 +407,11 @@ export class WatchService {
 		return result;
 	}
 
-	
+	public async removeWatchByAdmin(watchId: ObjectId): Promise<Watch> {
+		const search: T = { _id: watchId, watchStatus: WatchStatus.DELETE };
+		const result = await this.watchModel.findByIdAndDelete(search).exec();
+		if (!result) throw new InternalServerErrorException(Message.REMOVE_FAILED);
+
+		return result;
+	}
 }
