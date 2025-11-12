@@ -100,4 +100,12 @@ export class WatchResolver {
 		console.log('Query: getAllWatchesByAdmin');
 		return await this.watchService.getAllWatchesByAdmin(input);
 	}
+
+	@Roles(MemberType.ADMIN)
+	@UseGuards(RolesGuard)
+	@Mutation((returns) => Watch)
+	public async updateWatchByAdmin(@Args('input') input: WatchUpdate): Promise<Watch> {
+		console.log('Mutation: updatePropertyByAdmin');
+		return await this.watchService.updateWatchByAdmin(input);
+	}
 }

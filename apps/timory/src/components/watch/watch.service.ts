@@ -256,7 +256,6 @@ export class WatchService {
 		}
 		console.log('match:', match);
 
-
 		const sort: T = {
 			[input?.sort ?? 'createdAt']: input?.direction ?? Direction.DESC,
 		};
@@ -359,7 +358,6 @@ export class WatchService {
 		if (watchLocationList) match.watchLocation = { $in: watchLocationList };
 		if (watchTypeList?.length) match.watchType = { $in: watchTypeList };
 
-
 		const result = await this.watchModel
 			.aggregate([
 				{ $match: match },
@@ -377,9 +375,37 @@ export class WatchService {
 				},
 			])
 			.exec();
-			
+
 		if (!result.length) throw new InternalServerErrorException(Message.NO_DATA_FOUND);
 
 		return result[0];
 	}
+
+	public async updateWatchByAdmin(input: WatchUpdate): Promise<Watch> {
+		let { watchStatus, soldAt, deletedAt } = input;
+
+		const search: T = {
+			_id: input._id,
+			watchStatus: WatchStatus.ACTIVE,
+		};
+
+		if (watchStatus === WatchStatus.SOLD) soldAt = moment().toDate();
+		else if (watchStatus === WatchStatus.DELETE) deletedAt = moment().toDate();
+
+		const result = await this.watchModel.findByIdAndUpdate(search, input, { new: true }).exec();
+
+		if (!result) throw new InternalServerErrorException(Message.UPDATE_FAILED);
+
+		if (soldAt || deletedAt) {
+			await this.memberService.memberStatusEditor({
+				_id: result.memberId,
+				targetKey: 'memberWatches',
+				modifier: -1,
+			});
+		}
+
+		return result;
+	}
+
+	
 }
