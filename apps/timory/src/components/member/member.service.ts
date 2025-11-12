@@ -100,12 +100,7 @@ export class MemberService {
 			},
 		};
 		const targetMember = await this.memberModel.findOne(search).lean().exec();
-		// 	const targetMember = await this.memberModel.findOne({
-		// 		_id: targetId,
-		// 		memberStatus: {
-		// 			$in: [MemberStatus.ACTIVE, MemberStatus.BLOCK],
-		// 		},
-		// }).exec();
+
 		if (!targetMember) throw new InternalServerErrorException(Message.NO_DATA_FOUND);
 
 		if (memberId) {
@@ -201,11 +196,6 @@ export class MemberService {
 		return result;
 	}
 
-	public async memberStatusEditor(input: StatisticModifier): Promise<Member> {
-		console.log('executed!');
-		const { _id, targetKey, modifier } = input;
-		return await this.memberModel.findByIdAndUpdate(_id, { $inc: { [targetKey]: modifier } }, { new: true }).exec();
-	}
 
 	// FOR WATCH SERVICE
 	public async getMemberById(memberId: string | ObjectId): Promise<Member> {
@@ -238,5 +228,18 @@ export class MemberService {
 			console.log('Error in findDealersByIds:', err.message);
 			throw new BadRequestException('Not found Dealer Data!');
 		}
+	}
+
+	public async memberStatusEditor(input: StatisticModifier): Promise<Member> {
+		const { _id, targetKey, modifier } = input;
+		return await this.memberModel
+		.findByIdAndUpdate(
+			_id,
+			 { 
+				$inc: { [targetKey]: modifier }
+			 },
+			{ new: true }
+		)
+		.exec();
 	}
 }

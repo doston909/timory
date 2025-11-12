@@ -50,7 +50,7 @@ export class BoardArticleService {
 			const viewInput = { memberId: memberId, viewRefId: articleId, viewGroup: ViewGroup.ARTICLE };
 			const newView = await this.viewService.recordView(viewInput);
 			if (newView) {
-				await this.boardArticleStatsEditor({ _id: articleId, targetKey: 'articleViews', modifier: 1 });
+				await this.boardArticleStatusEditor({ _id: articleId, targetKey: 'articleViews', modifier: 1 });
 				targetBoardArticle.articleViews++;
 			}
 
@@ -180,7 +180,7 @@ export class BoardArticleService {
 		return result;
 	}
 
-	public async boardArticleStatsEditor(input: StatisticModifier): Promise<BoardArticle> {
+	public async boardArticleStatusEditor(input: StatisticModifier): Promise<BoardArticle> {
 		const { _id, targetKey, modifier } = input;
 		return await this.boardArticleModel
 			.findByIdAndUpdate(

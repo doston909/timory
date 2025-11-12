@@ -4,6 +4,7 @@ import { Model } from 'mongoose';
 import { View } from '../../libs/dto/view/view';
 import { ViewInput } from '../../libs/dto/view/view.input';
 import { T } from '../../libs/types/common';
+import { ViewGroup } from '../../libs/enums/view.enum';
 
 @Injectable()
 export class ViewService {
