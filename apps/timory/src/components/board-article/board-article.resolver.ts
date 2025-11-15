@@ -4,7 +4,11 @@ import { UseGuards } from '@nestjs/common';
 import { AuthGuard } from '../auth/guards/auth.guards';
 import { BoardArticle, BoardArticles } from '../../libs/dto/board-article/board-article';
 import { AuthMember } from '../auth/decorators/authMember.decorator';
-import { AllBoardArticlesInquiry, BoardArticleInput, BoardArticlesInquiry } from '../../libs/dto/board-article/board-article.input';
+import {
+	AllBoardArticlesInquiry,
+	BoardArticleInput,
+	BoardArticlesInquiry,
+} from '../../libs/dto/board-article/board-article.input';
 import { ObjectId } from 'mongoose';
 import { WithoutGuard } from '../auth/guards/without.guards';
 import { shapeIntoMongoObjectId } from '../../libs/config';
@@ -15,9 +19,9 @@ import { RolesGuard } from '../auth/guards/roles.guards';
 
 @Resolver()
 export class BoardArticleResolver {
-    constructor(private readonly boardArticleService: BoardArticleService) {}
+	constructor(private readonly boardArticleService: BoardArticleService) {}
 
-    @UseGuards(AuthGuard)
+	@UseGuards(AuthGuard)
 	@Mutation((returns) => BoardArticle)
 	public async createBoardArticle(
 		@Args('input') input: BoardArticleInput,
@@ -60,7 +64,18 @@ export class BoardArticleResolver {
 		return await this.boardArticleService.getBoardArticles(memberId, input);
 	}
 
-    	/** ADMIN **/
+	@UseGuards(AuthGuard)
+	@Mutation(() => BoardArticle)
+	public async likeTargetBoardArticle(
+		@Args('articleId') input: string,
+		@AuthMember('_id') memberId: ObjectId,
+	): Promise<BoardArticle> {
+		console.log('Mutation: likeTargetBoardArticle');
+		const likeRefId = shapeIntoMongoObjectId(input);
+		return await this.boardArticleService.likeTargetBoardArticle(memberId, likeRefId);
+	}
+
+	/** ADMIN **/
 
 	@Roles(MemberType.ADMIN)
 	@UseGuards(RolesGuard)
@@ -96,5 +111,4 @@ export class BoardArticleResolver {
 		const articleId = shapeIntoMongoObjectId(input);
 		return await this.boardArticleService.removeBoardArticleByAdmin(articleId);
 	}
-    
 }

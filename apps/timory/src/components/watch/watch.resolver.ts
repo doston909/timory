@@ -1,7 +1,13 @@
 import { Args, Mutation, Query, Resolver } from '@nestjs/graphql';
 import { WatchService } from './watch.service';
 import { Watch, Watches } from '../../libs/dto/watch/watch';
-import { AllWatchesInquiry, BrandWatchesInquiry, DealerWatchesInquiry, WatchesInquiry, WatchInput } from '../../libs/dto/watch/watch.input';
+import {
+	AllWatchesInquiry,
+	BrandWatchesInquiry,
+	DealerWatchesInquiry,
+	WatchesInquiry,
+	WatchInput,
+} from '../../libs/dto/watch/watch.input';
 import { Roles } from '../auth/decorators/roles.decorator';
 import { MemberType } from '../../libs/enums/member.enum';
 import { UseGuards } from '@nestjs/common';
@@ -92,14 +98,12 @@ export class WatchResolver {
 
 	@UseGuards(AuthGuard)
 	@Mutation(() => Watch)
-	public async likeTargetWatch(
-		@Args('watchId') input: string,
-		@AuthMember('_id') memberId: ObjectId,
-	): Promise<Watch> {
+	public async likeTargetWatch(@Args('watchId') input: string, @AuthMember('_id') memberId: ObjectId): Promise<Watch> {
 		console.log('Mutation: likeTargetWatch');
 		const likeRefId = shapeIntoMongoObjectId(input);
 		return await this.watchService.likeTargetWatch(memberId, likeRefId);
 	}
+
 
 	/** ADMIN **/
 	@Roles(MemberType.ADMIN)
