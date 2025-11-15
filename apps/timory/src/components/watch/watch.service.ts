@@ -30,7 +30,7 @@ export class WatchService {
 		@InjectModel('Watch') private readonly watchModel: Model<Watch>,
 		private memberService: MemberService,
 		private viewService: ViewService,
-			private likeService: LikeService,
+		private likeService: LikeService,
 	) {}
 
 	public async createBrandWatch(input: WatchInput): Promise<Watch> {
@@ -106,7 +106,7 @@ export class WatchService {
 				targetWatch.watchViews++;
 			}
 			// meLiked
-			const likeInput = {memberId: memberId, likeRefId: watchId, likeGroup: LikeGroup.WATCH};
+			const likeInput = { memberId: memberId, likeRefId: watchId, likeGroup: LikeGroup.WATCH };
 			targetWatch.meLiked = await this.likeService.checkLikeExistence(likeInput);
 		}
 
@@ -201,14 +201,16 @@ export class WatchService {
 			text,
 		} = input.search;
 
-		if (brandId) match.brandId = shapeIntoMongoObjectId(brandId);
-		if (dealerId) match.dealerId = shapeIntoMongoObjectId(dealerId);
+		if (brandId) match.memberId = shapeIntoMongoObjectId(brandId);
+		if (dealerId) {
+			match.dealerId = { $in: [shapeIntoMongoObjectId(dealerId)] };
+		}
 
-		if (locationList && locationList.length > 0) match.watchLocation = { $in: locationList };
+		if (locationList?.length) match.watchLocation = { $in: locationList };
 
-		if (typeList && typeList.length > 0) match.watchType = { $in: typeList };
+		if (typeList?.length) match.watchType = { $in: typeList };
 
-		if (statusList && statusList.length > 0) match.watchStatus = { $in: statusList };
+		if (statusList?.length) match.watchStatus = { $in: statusList };
 
 		if (pricesRange)
 			match.watchPrice = {
@@ -232,7 +234,6 @@ export class WatchService {
 			match.$or = [
 				{ watchTitle: { $regex: new RegExp(text, 'i') } },
 				{ watchModel: { $regex: new RegExp(text, 'i') } },
-				{ brandName: { $regex: new RegExp(text, 'i') } },
 				{ description: { $regex: new RegExp(text, 'i') } },
 			];
 
@@ -365,23 +366,21 @@ export class WatchService {
 	}
 
 	public async likeTargetWatch(memberId: ObjectId, likeRefId: ObjectId): Promise<Watch> {
-			const target: Watch = await this.watchModel
-			.findOne({ _id: likeRefId, watchStatus: WatchStatus.ACTIVE })
-			.exec();
-			if (!target) throw new InternalServerErrorException(Message.NO_DATA_FOUND);
-	
-			const input: LikeInput = {
-				memberId: memberId,
-				likeRefId: likeRefId,
-				likeGroup: LikeGroup.WATCH,
-			};
-	
-			const modifier: number = await this.likeService.toggleLike(input);
-			const result = await this.watchStatusEditor({ _id: likeRefId, targetKey: 'watchLikes', modifier: modifier });
-	
-			if (!result) throw new InternalServerErrorException(Message.SOMETHING_WENT_WRONG);
-			return result;
-		}
+		const target: Watch = await this.watchModel.findOne({ _id: likeRefId, watchStatus: WatchStatus.ACTIVE }).exec();
+		if (!target) throw new InternalServerErrorException(Message.NO_DATA_FOUND);
+
+		const input: LikeInput = {
+			memberId: memberId,
+			likeRefId: likeRefId,
+			likeGroup: LikeGroup.WATCH,
+		};
+
+		const modifier: number = await this.likeService.toggleLike(input);
+		const result = await this.watchStatusEditor({ _id: likeRefId, targetKey: 'watchLikes', modifier: modifier });
+
+		if (!result) throw new InternalServerErrorException(Message.SOMETHING_WENT_WRONG);
+		return result;
+	}
 
 	public async getAllWatchesByAdmin(input: AllWatchesInquiry): Promise<Watches> {
 		const { watchStatus, watchLocationList, watchTypeList } = input.search;
