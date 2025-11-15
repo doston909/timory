@@ -5,6 +5,7 @@ import {
 	AllWatchesInquiry,
 	BrandWatchesInquiry,
 	DealerWatchesInquiry,
+	OrdinaryInquiry,
 	WatchesInquiry,
 	WatchInput,
 } from '../../libs/dto/watch/watch.input';
@@ -72,6 +73,16 @@ export class WatchResolver {
 	): Promise<Watches> {
 		console.log('Query: getWatches');
 		return await this.watchService.getWatches(memberId, input);
+	}
+
+	@UseGuards(AuthGuard)
+	@Query((returns) => Watches)
+	public async getFavorites(
+		@Args('input') input: OrdinaryInquiry,
+		@AuthMember('_id') memberId: ObjectId,
+	): Promise<Watches> {
+		console.log('Query: getFavorites');
+		return await this.watchService.getFavorites(memberId, input);
 	}
 
 	@Roles(MemberType.BRAND)

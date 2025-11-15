@@ -7,6 +7,7 @@ import {
 	AllWatchesInquiry,
 	BrandWatchesInquiry,
 	DealerWatchesInquiry,
+	OrdinaryInquiry,
 	WatchesInquiry,
 	WatchInput,
 } from '../../libs/dto/watch/watch.input';
@@ -240,6 +241,10 @@ export class WatchService {
 				[`options.${opt}`]: true,
 			}));
 		}
+	}
+
+	public async getFavorites(memberId: ObjectId, input: OrdinaryInquiry): Promise<Watches> {
+		return await this.likeService.getFavoriteWatches(memberId, input);
 	}
 
 	public async getBrandWatches(memberId: ObjectId, input: BrandWatchesInquiry): Promise<Watches> {

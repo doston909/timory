@@ -106,42 +106,41 @@ class WISearch {
 
 	@IsOptional()
 	@Field(() => String, { nullable: true })
-	dealerId?: ObjectId; 
+	dealerId?: ObjectId;
 
 	@IsOptional()
 	@Field(() => [WatchType], { nullable: true })
-	typeList?: WatchType[]; 
+	typeList?: WatchType[];
 
 	@IsOptional()
 	@Field(() => [WatchStatus], { nullable: true })
-	statusList?: WatchStatus[]; 
+	statusList?: WatchStatus[];
 
 	@IsOptional()
 	@Field(() => [WatchLocation], { nullable: true })
-	locationList?: WatchLocation[]; 
+	locationList?: WatchLocation[];
 
 	@IsOptional()
 	@IsIn(availableWatchOptions, { each: true })
 	@Field(() => [String], { nullable: true })
-	options?: string[]; 
+	options?: string[];
 
 	@IsOptional()
 	@Field(() => PricesRange, { nullable: true })
-	pricesRange?: PricesRange; 
+	pricesRange?: PricesRange;
 
 	@IsOptional()
 	@Field(() => SizesRange, { nullable: true })
-	sizesRange?: SizesRange; 
+	sizesRange?: SizesRange;
 
 	@IsOptional()
 	@Field(() => PeriodsRange, { nullable: true })
-	periodsRange?: PeriodsRange; 
+	periodsRange?: PeriodsRange;
 
 	@IsOptional()
 	@Field(() => String, { nullable: true })
-	text?: string; 
+	text?: string;
 }
-
 
 @InputType()
 export class WatchesInquiry {
@@ -158,7 +157,7 @@ export class WatchesInquiry {
 	@IsOptional()
 	@IsIn(availableWatchSorts)
 	@Field(() => String, { nullable: true })
-	sort?: string; 
+	sort?: string;
 
 	@IsOptional()
 	@Field(() => Direction, { nullable: true })
@@ -171,89 +170,88 @@ export class WatchesInquiry {
 
 @InputType()
 class BWISearch {
-  @IsOptional()
-  @Field(() => WatchStatus, { nullable: true })
-  watchStatus?: WatchStatus;
+	@IsOptional()
+	@Field(() => WatchStatus, { nullable: true })
+	watchStatus?: WatchStatus;
 
-  @IsOptional()
-  @Field(() => String, { nullable: true })
-  brandId?: string;
+	@IsOptional()
+	@Field(() => String, { nullable: true })
+	brandId?: string;
 
-  @IsOptional()
-  @Field(() => String, { nullable: true })
-  text?: string;
+	@IsOptional()
+	@Field(() => String, { nullable: true })
+	text?: string;
 }
 
 @InputType()
 export class BrandWatchesInquiry {
-  @IsNotEmpty()
-  @Min(1)
-  @Field(() => Int)
-  page: number;
+	@IsNotEmpty()
+	@Min(1)
+	@Field(() => Int)
+	page: number;
 
-  @IsNotEmpty()
-  @Min(1)
-  @Field(() => Int)
-  limit: number;
+	@IsNotEmpty()
+	@Min(1)
+	@Field(() => Int)
+	limit: number;
 
-  @IsOptional()
-  @IsIn(availableWatchSorts)
-  @Field(() => String, { nullable: true })
-  sort?: string;
+	@IsOptional()
+	@IsIn(availableWatchSorts)
+	@Field(() => String, { nullable: true })
+	sort?: string;
 
-  @IsOptional()
-  @Field(() => Direction, { nullable: true })
-  direction?: Direction;
+	@IsOptional()
+	@Field(() => Direction, { nullable: true })
+	direction?: Direction;
 
-  @IsNotEmpty()
-  @Field(() => BWISearch)
-  search: BWISearch;
+	@IsNotEmpty()
+	@Field(() => BWISearch)
+	search: BWISearch;
 }
-
 
 @InputType()
 class DWISearch {
-  @IsOptional()
-  @Field(() => WatchStatus, { nullable: true })
-  watchStatus?: WatchStatus;
+	@IsOptional()
+	@Field(() => WatchStatus, { nullable: true })
+	watchStatus?: WatchStatus;
 
-  @IsOptional()
-  @Field(() => String, { nullable: true })
-  dealerId?: string;
+	@IsOptional()
+	@Field(() => String, { nullable: true })
+	dealerId?: string;
 
-  @IsOptional()
-  @Field(() => String, { nullable: true })
-  brandId?: string;
+	@IsOptional()
+	@Field(() => String, { nullable: true })
+	brandId?: string;
 
-  @IsOptional()
-  @Field(() => String, { nullable: true })
-  text?: string;
+	@IsOptional()
+	@Field(() => String, { nullable: true })
+	text?: string;
 }
 
 @InputType()
 export class DealerWatchesInquiry {
-  @IsNotEmpty()
-  @Min(1)
-  @Field(() => Int)
-  page: number;
+	@IsNotEmpty()
+	@Min(1)
+	@Field(() => Int)
+	page: number;
 
-  @IsNotEmpty()
-  @Min(1)
-  @Field(() => Int)
-  limit: number;
+	@IsNotEmpty()
+	@Min(1)
+	@Field(() => Int)
+	limit: number;
 
-  @IsOptional()
-  @IsIn(availableWatchSorts)
-  @Field(() => String, { nullable: true })
-  sort?: string;
+	@IsOptional()
+	@IsIn(availableWatchSorts)
+	@Field(() => String, { nullable: true })
+	sort?: string;
 
-  @IsOptional()
-  @Field(() => Direction, { nullable: true })
-  direction?: Direction;
+	@IsOptional()
+	@Field(() => Direction, { nullable: true })
+	direction?: Direction;
 
-  @IsNotEmpty()
-  @Field(() => DWISearch)
-  search: DWISearch;
+	@IsNotEmpty()
+	@Field(() => DWISearch)
+	search: DWISearch;
 }
 
 @InputType()
@@ -295,4 +293,17 @@ export class AllWatchesInquiry {
 	@IsNotEmpty()
 	@Field(() => ALWISearch)
 	search: ALWISearch;
+}
+
+@InputType()
+export class OrdinaryInquiry {
+	@IsNotEmpty()
+	@Min(1)
+	@Field(() => Int)
+	page: number;
+
+	@IsNotEmpty()
+	@Min(1)
+	@Field(() => Int)
+	limit: number;
 }
