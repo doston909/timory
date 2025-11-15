@@ -61,7 +61,7 @@ export class WatchInput {
 
 	@IsOptional()
 	@Field(() => [String], { nullable: true })
-	dealerIds?: string[];
+	dealerId?: string[];
 
 	memberId?: ObjectId;
 

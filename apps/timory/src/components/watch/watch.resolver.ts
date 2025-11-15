@@ -11,6 +11,7 @@ import { RolesGuard } from '../auth/guards/roles.guards';
 import { shapeIntoMongoObjectId } from '../../libs/config';
 import { WithoutGuard } from '../auth/guards/without.guards';
 import { WatchUpdate } from '../../libs/dto/watch/watch.update';
+import { AuthGuard } from '../auth/guards/auth.guards';
 
 @Resolver()
 export class WatchResolver {
@@ -87,6 +88,17 @@ export class WatchResolver {
 	): Promise<Watches> {
 		console.log('Query: getDealerWatches');
 		return await this.watchService.getDealerWatches(memberId, input);
+	}
+
+	@UseGuards(AuthGuard)
+	@Mutation(() => Watch)
+	public async likeTargetWatch(
+		@Args('watchId') input: string,
+		@AuthMember('_id') memberId: ObjectId,
+	): Promise<Watch> {
+		console.log('Mutation: likeTargetWatch');
+		const likeRefId = shapeIntoMongoObjectId(input);
+		return await this.watchService.likeTargetWatch(memberId, likeRefId);
 	}
 
 	/** ADMIN **/

@@ -71,7 +71,7 @@ const WatchSchema = new Schema(
 			ref: 'Member',
 		},
 
-		dealerIds: {
+		dealerId: {
 			type: [Schema.Types.ObjectId],
 			ref: 'Member',
 			default: [],

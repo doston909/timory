@@ -19,6 +19,9 @@ import { ViewGroup } from '../../libs/enums/view.enum';
 import moment from 'moment';
 import { WatchUpdate } from '../../libs/dto/watch/watch.update';
 import { lookupMember, shapeIntoMongoObjectId } from '../../libs/config';
+import { LikeService } from '../like/like.service';
+import { LikeInput } from '../../libs/dto/like/like.input';
+import { LikeGroup } from '../../libs/enums/like.enum';
 
 @Injectable()
 export class WatchService {
@@ -26,6 +29,7 @@ export class WatchService {
 		@InjectModel('Watch') private readonly watchModel: Model<Watch>,
 		private memberService: MemberService,
 		private viewService: ViewService,
+			private likeService: LikeService,
 	) {}
 
 	public async createBrandWatch(input: WatchInput): Promise<Watch> {
@@ -35,8 +39,8 @@ export class WatchService {
 
 			let dealerIds: string[] = [];
 
-			if (input.dealerIds?.length) {
-				const dealers = await this.memberService.findDealersByIds(input.dealerIds);
+			if (input.dealerId?.length) {
+				const dealers = await this.memberService.findDealersByIds(input.dealerId);
 				dealerIds = dealers.map((d) => d._id.toString());
 			}
 
@@ -348,6 +352,25 @@ export class WatchService {
 
 		return result[0];
 	}
+
+	public async likeTargetWatch(memberId: ObjectId, likeRefId: ObjectId): Promise<Watch> {
+			const target: Watch = await this.watchModel
+			.findOne({ _id: likeRefId, watchStatus: WatchStatus.ACTIVE })
+			.exec();
+			if (!target) throw new InternalServerErrorException(Message.NO_DATA_FOUND);
+	
+			const input: LikeInput = {
+				memberId: memberId,
+				likeRefId: likeRefId,
+				likeGroup: LikeGroup.WATCH,
+			};
+	
+			const modifier: number = await this.likeService.toggleLike(input);
+			const result = await this.watchStatusEditor({ _id: likeRefId, targetKey: 'watchLikes', modifier: modifier });
+	
+			if (!result) throw new InternalServerErrorException(Message.SOMETHING_WENT_WRONG);
+			return result;
+		}
 
 	public async getAllWatchesByAdmin(input: AllWatchesInquiry): Promise<Watches> {
 		const { watchStatus, watchLocationList, watchTypeList } = input.search;

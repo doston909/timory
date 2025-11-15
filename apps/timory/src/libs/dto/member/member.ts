@@ -24,7 +24,7 @@ export class Member {
 	memberNick: string;
 
 	@Field(() => Int)
-    memberWatches?: Watch;
+    memberWatches: Watch;
 
 	memberPassword?: string;
 
@@ -39,7 +39,6 @@ export class Member {
 
 	@Field(() => String, { nullable: true })
 	memberDesc?: string;
-
 
 	@Field(() => Int)
 	memberArticles: number;
