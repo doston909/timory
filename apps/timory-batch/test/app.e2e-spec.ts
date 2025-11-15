@@ -1,7 +1,8 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { INestApplication } from '@nestjs/common';
-import * as request from 'supertest';
-import { TimoryBatchModule } from './../src/timory-batch.module';
+import request from 'supertest';
+import { TimoryBatchModule } from '../src/timory-batch.module';
+
 
 describe('TimoryBatchController (e2e)', () => {
   let app: INestApplication;
