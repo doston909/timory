@@ -247,6 +247,10 @@ export class WatchService {
 		return await this.likeService.getFavoriteWatches(memberId, input);
 	}
 
+	public async getVisited(memberId: ObjectId, input: OrdinaryInquiry): Promise<Watches> {
+		return await this.viewService.getVisitedWatches(memberId, input);
+	}
+
 	public async getBrandWatches(memberId: ObjectId, input: BrandWatchesInquiry): Promise<Watches> {
 		const { watchStatus, text } = input.search;
 

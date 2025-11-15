@@ -135,3 +135,12 @@ export const lookupFavorite = {
 		as: 'favoriteWatch.memberData',
 	},
 };
+
+	export const lookupVisit = {
+	$lookup: {
+		from: 'members',
+		localField: 'visitedWatch.memberId',
+		foreignField: '_id',
+		as: 'visitedWatch.memberData',
+	},
+};

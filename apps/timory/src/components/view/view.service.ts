@@ -1,10 +1,13 @@
 import { Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
-import { Model } from 'mongoose';
+import { Model, ObjectId } from 'mongoose';
 import { View } from '../../libs/dto/view/view';
 import { ViewInput } from '../../libs/dto/view/view.input';
 import { T } from '../../libs/types/common';
 import { ViewGroup } from '../../libs/enums/view.enum';
+import { OrdinaryInquiry } from '../../libs/dto/watch/watch.input';
+import { Watches } from '../../libs/dto/watch/watch';
+import { lookupVisit } from '../../libs/config';
 
 @Injectable()
 export class ViewService {
@@ -23,4 +26,40 @@ export class ViewService {
 		const search: T = { memberId: memberId, viewRefId: viewRefId };
 		return await this.viewModel.findOne(search).exec();
 	}
+
+	public async getVisitedWatches(memberId: ObjectId, input: OrdinaryInquiry): Promise<Watches> {
+			const { page, limit } = input;
+			const match: T = { viewGroup: ViewGroup.WATCH, memberId: memberId };
+	
+			const data: T = await this.viewModel
+				.aggregate([
+					{ $match: match },
+					{ $sort: { updatedAt: -1 } },
+					{
+						$lookup: {
+							from: 'watches',
+							localField: 'viewRefId',
+							foreignField: '_id',
+							as: 'visitedWatch',
+						},
+					},
+					{ $unwind: '$visitedWatch' },
+					{
+						$facet: {
+							list: [
+								{ $skip: (page - 1) * limit },
+								{ $limit: limit },
+								lookupVisit,
+								{ $unwind: '$visitedWatch.memberData' },
+							],
+							metaCounter: [{ $count: 'total' }],
+						},
+					},
+				])
+				.exec();
+	
+			const result: Watches = { list: [], metaCounter: data[0].metaCounter };
+			result.list = data[0].list.map((ele) => ele.visitedWatch);
+			return result;
+		}
 }

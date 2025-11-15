@@ -85,6 +85,16 @@ export class WatchResolver {
 		return await this.watchService.getFavorites(memberId, input);
 	}
 
+	@UseGuards(AuthGuard)
+	@Query((returns) => Watches)
+	public async getVisited(
+		@Args('input') input: OrdinaryInquiry,
+		@AuthMember('_id') memberId: ObjectId,
+	): Promise<Watches> {
+		console.log('Query: getVisited');
+		return await this.watchService.getVisited(memberId, input);
+	}
+
 	@Roles(MemberType.BRAND)
 	@UseGuards(RolesGuard)
 	@Query(() => Watches) // GraphQL’da qaytadigan obyekt turi (Watches yoki WatchList)
