@@ -104,8 +104,9 @@ export class WatchService {
 				await this.watchStatusEditor({ _id: watchId, targetKey: 'watchViews', modifier: 1 });
 				targetWatch.watchViews++;
 			}
-
 			// meLiked
+			const likeInput = {memberId: memberId, likeRefId: watchId, likeGroup: LikeGroup.WATCH};
+			targetWatch.meLiked = await this.likeService.checkLikeExistence(likeInput);
 		}
 
 		targetWatch.memberData = await this.memberService.getMember(null, targetWatch.memberId);
