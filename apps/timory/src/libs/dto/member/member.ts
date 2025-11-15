@@ -26,7 +26,7 @@ export class Member {
 	memberNick: string;
 
 	@Field(() => Int)
-    memberWatches: Watch;
+    memberWatches: number;
 
 	memberPassword?: string;
 
