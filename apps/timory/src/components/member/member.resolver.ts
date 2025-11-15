@@ -24,8 +24,7 @@ import { Message } from '../../libs/enums/common.enum';
 
 @Resolver()
 export class MemberResolver {
-	constructor(private readonly memberService: MemberService,	
-	) {}
+	constructor(private readonly memberService: MemberService) {}
 
 	@Mutation(() => Member)
 	public async signup(@Args('input') input: MemberInput): Promise<Member> {
@@ -95,7 +94,7 @@ export class MemberResolver {
 		return await this.memberService.getDealers(memberId, input);
 	}
 
-		@UseGuards(AuthGuard)
+	@UseGuards(AuthGuard)
 	@Mutation(() => Member)
 	public async likeTargetMember(
 		@Args('memberId') input: string,
@@ -200,5 +199,4 @@ export class MemberResolver {
 		await Promise.all(promisedList);
 		return uploadedImages;
 	}
-	
 }
