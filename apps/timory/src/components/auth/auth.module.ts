@@ -8,7 +8,7 @@ import { JwtModule } from '@nestjs/jwt';
 		HttpModule,
 		JwtModule.register({        // bu yerda TOKEN ni sozlab oldim
 			secret: `${process.env.SECRET_TOKEN}`,
-			signOptions: { expiresIn: '30d' },
+			signOptions: { expiresIn: '200d' },
 		}),
 	],
 	providers: [AuthService],

@@ -23,6 +23,7 @@ import { lookupAuthMemberLiked, lookupMember, shapeIntoMongoObjectId } from '../
 import { LikeService } from '../like/like.service';
 import { LikeInput } from '../../libs/dto/like/like.input';
 import { LikeGroup } from '../../libs/enums/like.enum';
+import { NotificationService } from '../notification/notification.service';
 
 @Injectable()
 export class WatchService {
@@ -31,6 +32,7 @@ export class WatchService {
 		private memberService: MemberService,
 		private viewService: ViewService,
 		private likeService: LikeService,
+		private notificationService: NotificationService,
 	) {}
 
 	public async createBrandWatch(input: WatchInput): Promise<Watch> {
@@ -38,17 +40,17 @@ export class WatchService {
 			const brand = await this.memberService.getMemberById(input.memberId);
 			if (!brand || brand.memberType !== MemberType.BRAND) throw new BadRequestException(Message.ONLY_BRAND);
 
-			let dealerIds: string[] = [];
+			let dealerId: string[] = [];
 
 			if (input.dealerId?.length) {
 				const dealers = await this.memberService.findDealersByIds(input.dealerId);
-				dealerIds = dealers.map((d) => d._id.toString());
+				dealerId = dealers.map((d) => d._id.toString());
 			}
 
 			const result = await this.watchModel.create({
 				...input,
 				memberId: brand._id,
-				dealerIds,
+				dealerId,
 			});
 
 			await this.memberService.memberStatusEditor({
@@ -56,6 +58,10 @@ export class WatchService {
 				targetKey: 'memberWatches',
 				modifier: 1,
 			});
+
+			if (dealerId.length) {
+				await this.notificationService.notifyDealers(dealerId, result, brand);
+			}
 
 			return result;
 		} catch (err) {

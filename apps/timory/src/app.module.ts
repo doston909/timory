@@ -19,8 +19,8 @@ import { SocketModule } from './socket/socket.module';
 			autoSchemaFile: true,
 			uploads: false,
 			csrfPrevention: false,
-			path: '/graphql', 
-			context: ({ req, res }) => ({ req, res }), 
+			path: '/graphql',
+			context: ({ req, res }) => ({ req, res }),
 			formatError: (error: T) => {
 				const graphqlFormattedError = {
 					code: error?.extensions.code,
@@ -34,7 +34,8 @@ import { SocketModule } from './socket/socket.module';
 		ComponentsModule,
 		DatabaseModule,
 		SocketModule,
-	], 											// we can use .env file
+		
+	], // we can use .env file
 	controllers: [AppController],
 	providers: [AppService, AppResolver],
 })

@@ -32,24 +32,25 @@ const NotificationSchema = new Schema(
 
 		authorId: {
 			type: Schema.Types.ObjectId,
-			required: true,
 			ref: 'Member',
+			required: true,
 		},
 
 		receiverId: {
 			type: Schema.Types.ObjectId,
-			required: true,
 			ref: 'Member',
+			required: true,
 		},
 
-		propertyId: {
+		// Watch App uchun to‘g‘rilangan
+		watchId: {
 			type: Schema.Types.ObjectId,
 			ref: 'Watch',
 		},
 
-		articleId: {
-			type: Schema.Types.ObjectId,
-			ref: 'BoardArticle',
+		watchData: {
+			type: Object,
+			default: null,
 		},
 	},
 	{ timestamps: true, collection: 'notifications' },
