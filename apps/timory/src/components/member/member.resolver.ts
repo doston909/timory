@@ -39,20 +39,17 @@ export class MemberResolver {
 
 	@UseGuards(AuthGuard)
 	@Query(() => String)
-	public async checkAuth(@AuthMember('memberNick') memberNick: string): Promise<string> {
-		// bu yerda authMember ichidagi memberNickni memberNickga tenglab oldim
-		console.log('Query: checkAuth');
-		console.log('memberNick:', memberNick);
-		return `Hi ${memberNick}`;
+	public async checkAuth(@AuthMember() authMember: Member): Promise<string> {
+		const name = authMember.memberName ?? authMember.memberEmail ?? authMember.memberNick ?? 'User';
+		return `Hi ${name}`;
 	}
 
 	@Roles(MemberType.ADMIN, MemberType.DEALER, MemberType.USER)
 	@UseGuards(RolesGuard)
 	@Query(() => String)
 	public async checkAuthRoles(@AuthMember() authMember: Member): Promise<string> {
-		// bu yerda authMember ichidagi memberNickni memberNickga tenglab oldim
-		console.log('Query: checkAuth');
-		return `Hi ${authMember.memberNick}, you are ${authMember.memberType}, (memberid: ${authMember._id})`;
+		const name = authMember.memberName ?? authMember.memberEmail ?? authMember.memberNick ?? 'User';
+		return `Hi ${name}, you are ${authMember.memberType}, (memberid: ${authMember._id})`;
 	}
 
 	// Authentication

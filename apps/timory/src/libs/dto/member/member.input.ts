@@ -1,47 +1,48 @@
 import { Field, InputType, Int } from '@nestjs/graphql';
-import { IsIn, IsNotEmpty, IsOptional, Length, Min } from 'class-validator';
-import { MemberAuthType, MemberStatus, MemberType } from '../../enums/member.enum';
+import { IsEmail, IsEnum, IsIn, IsNotEmpty, IsOptional, Length, Min } from 'class-validator';
+import { Match } from '../../decorators/match.decorator';
+import { MemberStatus, MemberType } from '../../enums/member.enum';
 import { availableDealerSorts, availableMembersSorts } from '../../config';
 import { Direction } from '../../enums/common.enum';
 
 @InputType()
 export class MemberInput {
-	@IsNotEmpty() // bo'sh bo'lmaslik sharti
-	@Length(3, 12) // uzunligi 3-12 orasida bo'lishi
-	@Field(() => String) // string qaytarishi sharti
-	memberNick: string;
+	@IsNotEmpty()
+	@Length(2, 100)
+	@Field(() => String)
+	memberName: string;
 
 	@IsNotEmpty()
-	@Length(5, 12)
+	@IsEmail()
+	@Field(() => String)
+	memberEmail: string;
+
+	@IsNotEmpty()
+	@Length(5, 50)
 	@Field(() => String)
 	memberPassword: string;
 
 	@IsNotEmpty()
+	@Length(5, 50)
+	@Match('memberPassword', { message: 'memberConfirmPassword must match memberPassword' })
 	@Field(() => String)
-	memberPhone: string;
+	memberConfirmPassword: string;
 
-	@IsOptional() // bo'lishi yoki bo'lmasligi ham mumkin
-	@Field(() => MemberType, { nullable: true }) // MemberType shaklida data qaytarishi va bo'sh bo'lishi mumkinligi sharti
-	memberType?: MemberType; // memberType type MemberType bo'lishi sharti
-
-	@IsOptional() // bo'lishi yoki bo'lmasligi ham mumkin
-	@Field(() => MemberAuthType, { nullable: true }) // MemberAuthType shaklida data qaytarishi va bo'sh bo'lishi mumkinligi sharti
-	memberAuthType?: MemberAuthType; // memberAuthType type MemberAuthType bo'lishi sharti
-
-	@IsOptional()
-	@Field(() => String, { nullable: true })
-	adminSecretKey?: string;
+	@IsNotEmpty()
+	@IsEnum(MemberType)
+	@Field(() => MemberType)
+	memberType: MemberType;
 }
 
 @InputType()
 export class LoginInput {
-	@IsNotEmpty() // Pipes
-	@Length(3, 12)
-	@Field(() => String) // GraphQl
-	memberNick: string; // TypeScript
+	@IsNotEmpty()
+	@Length(2, 100)
+	@Field(() => String)
+	memberName: string;
 
 	@IsNotEmpty()
-	@Length(5, 12)
+	@Length(5, 50)
 	@Field(() => String)
 	memberPassword: string;
 }

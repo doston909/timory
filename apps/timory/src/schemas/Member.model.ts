@@ -21,16 +21,27 @@ const MemberSchema = new Schema(
 			default: MemberAuthType.PHONE,
 		},
 
+		memberName: {
+			type: String,
+			default: null,
+		},
+
+		memberEmail: {
+			type: String,
+			index: { unique: true, sparse: true },
+			default: null,
+		},
+
 		memberPhone: {
 			type: String,
 			index: { unique: true, sparse: true },
-			required: true,
+			// default yo'q — signupda yozilmasa maydon hujjatda bo'lmaydi, sparse index duplicate qilmaydi
 		},
 
 		memberNick: {
 			type: String,
 			index: { unique: true, sparse: true },
-			required: true,
+			default: null,
 		},
 
 		memberPassword: {
@@ -41,11 +52,17 @@ const MemberSchema = new Schema(
 
 		memberFullName: {
 			type: String,
+			default: null,
 		},
 
 		memberImage: {
 			type: String,
 			default: '',
+		},
+
+		memberPhoto: {
+			type: String,
+			default: null,
 		},
 
 		memberAddress: {

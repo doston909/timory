@@ -19,28 +19,25 @@ export class Member {
 	@Field(() => MemberAuthType)
 	memberAuthType: MemberAuthType;
 
-	@Field(() => String)
-	memberPhone: string;
+	@Field(() => String, { nullable: true })
+	memberName?: string;
 
-	@Field(() => String)
-	memberNick: string;
+	@Field(() => String, { nullable: true })
+	memberEmail?: string;
+
+	@Field(() => String, { nullable: true })
+	memberPhone?: string;
 
 	@Field(() => Int)
-    memberWatches: number;
+	memberWatches: number;
 
 	memberPassword?: string;
 
 	@Field(() => String, { nullable: true })
-	memberFullName?: string;
-
-	@Field(() => String)
-	memberImage: string;
+	memberPhoto?: string;
 
 	@Field(() => String, { nullable: true })
 	memberAddress?: string;
-
-	@Field(() => String, { nullable: true })
-	memberDesc?: string;
 
 	@Field(() => Int)
 	memberArticles: number;

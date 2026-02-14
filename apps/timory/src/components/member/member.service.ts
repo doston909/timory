@@ -38,16 +38,22 @@ export class MemberService {
 			if (existingAdmin) {
 				throw new BadRequestException(Message.ALREADY_ADMIN);
 			}
-
-			if (input.adminSecretKey !== process.env.ADMIN_SECRET_KEY) {
-				throw new BadRequestException('Invalid or empty ADMIN_SECRET_KEY');
-			}
 		}
 
-		input.memberPassword = await this.authService.hashPassword(input.memberPassword);
+		const existingEmail = await this.memberModel.findOne({ memberEmail: input.memberEmail }).exec();
+		if (existingEmail) {
+			throw new BadRequestException(Message.USED_MEMBER_NICK_OR_PHONE);
+		}
+
+		const hashedPassword = await this.authService.hashPassword(input.memberPassword);
 		try {
-			const result = await this.memberModel.create(input);
-			// TODO: Authentication via TOKEN
+			const result = await this.memberModel.create({
+				memberName: input.memberName,
+				memberEmail: input.memberEmail,
+				memberNick: input.memberEmail,
+				memberPassword: hashedPassword,
+				memberType: input.memberType,
+			});
 			result.accessToken = await this.authService.createToken(result);
 			return result;
 		} catch (err) {
@@ -57,10 +63,10 @@ export class MemberService {
 	}
 
 	public async login(input: LoginInput): Promise<Member> {
-		const { memberNick, memberPassword } = input;
+		const { memberName, memberPassword } = input;
 		const response: Member = await this.memberModel
-			.findOne({ memberNick: memberNick })
-			.select('+memberPassword') // password ni majburan olib keldim
+			.findOne({ memberName })
+			.select('+memberPassword')
 			.exec();
 
 		if (!response || response.memberStatus === MemberStatus.DELETE) {
@@ -69,9 +75,7 @@ export class MemberService {
 			throw new InternalServerErrorException(Message.BLOCKED_USER);
 		}
 
-		// TODO: Compare passwords
-		// console.log("response:", response);
-		const isMatch = await this.authService.comparePasswords(input.memberPassword, response.memberPassword);
+		const isMatch = await this.authService.comparePasswords(memberPassword, response.memberPassword);
 		if (!isMatch) throw new InternalServerErrorException(Message.WRONG_PASSWORD);
 
 		response.accessToken = await this.authService.createToken(response);
@@ -81,7 +85,7 @@ export class MemberService {
 
 	public async updateMember(memberId: ObjectId, input: MemberUpdate): Promise<Member> {
 		// faqat ruxsat berilgan maydonlarni qoldirish
-		const allowedFields = ['memberNick', 'memberFullName', 'memberImage', 'memberAddress', 'memberDesc', 'memberPhone'];
+		const allowedFields = ['memberPhoto', 'memberName', 'memberEmail', 'memberPhone', 'memberAddress'];
 		for (const key of Object.keys(input)) {
 			if (!allowedFields.includes(key)) delete input[key];
 		}
@@ -200,7 +204,16 @@ export class MemberService {
 	}
 
 	public async updateMemberByAdmin(input: MemberUpdate): Promise<Member> {
-		const result: Member = await this.memberModel.findOneAndUpdate({ _id: input._id }, input, { new: true }).exec();
+		if (!input._id) throw new BadRequestException(Message.BAD_REQUEST);
+		const allowedFields = ['memberPhoto', 'memberName', 'memberEmail', 'memberPhone', 'memberAddress'];
+		const update: T = {};
+		for (const key of allowedFields) {
+			if (input[key] !== undefined) update[key] = input[key];
+		}
+		const result: Member = await this.memberModel
+			.findOneAndUpdate({ _id: input._id }, { $set: update }, { new: true })
+			.select('-memberPassword')
+			.exec();
 		if (!result) throw new InternalServerErrorException(Message.UPDATE_FAILED);
 		return result;
 	}
