@@ -15,14 +15,17 @@ export class Watch {
 	@Field(() => WatchStatus)
 	watchStatus: WatchStatus;
 
-	@Field(() => WatchLocation)
-	watchLocation: WatchLocation;
+	@Field(() => WatchLocation, { nullable: true })
+	watchLocation?: WatchLocation;
+
+	@Field(() => String, { nullable: true })
+	watchAddress?: string;
 
 	@Field(() => String)
-	watchAddress: string;
+	watchModelName: string;
 
-	@Field(() => String)
-	watchTitle: string;
+	@Field(() => Boolean, { nullable: true })
+	watchLimitedEdition?: boolean;
 
 	@Field(() => Number)
 	watchPrice: number;
@@ -43,10 +46,34 @@ export class Watch {
 	watchImages: string[];
 
 	@Field(() => String, { nullable: true })
-	watchDesc?: string;
+	watchBrand?: string;
 
 	@Field(() => String, { nullable: true })
-	brandId: ObjectId;
+	watchColor?: string;
+
+	@Field(() => String, { nullable: true })
+	watchCaseShape?: string;
+
+	@Field(() => String, { nullable: true })
+	watchCaseSize?: string;
+
+	@Field(() => String, { nullable: true })
+	watchCountry?: string;
+
+	@Field(() => String, { nullable: true })
+	watchMakeData?: string;
+
+	@Field(() => Number, { nullable: true })
+	watchWaterResistance?: number;
+
+	@Field(() => Number, { nullable: true })
+	watchAvailability?: number;
+
+	@Field(() => String, { nullable: true })
+	watchMaterial?: string;
+
+	@Field(() => String, { nullable: true })
+	watchDescription?: string;
 
 	@Field(() => String)
 	memberId: ObjectId;

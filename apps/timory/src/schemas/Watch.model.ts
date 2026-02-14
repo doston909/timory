@@ -18,17 +18,22 @@ const WatchSchema = new Schema(
 		watchLocation: {
 			type: String,
 			enum: WatchLocation,
-			required: true,
+			default: null,
 		},
 
 		watchAddress: {
 			type: String,
+			default: null,
+		},
+
+		watchModelName: {
+			type: String,
 			required: true,
 		},
 
-		watchTitle: {
-			type: String,
-			required: true,
+		watchLimitedEdition: {
+			type: Boolean,
+			default: false,
 		},
 
 		watchPrice: {
@@ -61,8 +66,54 @@ const WatchSchema = new Schema(
 			required: true,
 		},
 
-		watchDesc: {
+		watchBrand: {
 			type: String,
+			default: null,
+		},
+
+		watchColor: {
+			type: String,
+			default: null,
+		},
+
+		watchCaseShape: {
+			type: String,
+			default: null,
+		},
+
+		watchCaseSize: {
+			type: String,
+			default: null,
+		},
+
+		watchCountry: {
+			type: String,
+			default: null,
+		},
+
+		watchMakeData: {
+			type: String,
+			default: null,
+		},
+
+		watchWaterResistance: {
+			type: Number,
+			default: null,
+		},
+
+		watchAvailability: {
+			type: Number,
+			default: null,
+		},
+
+		watchMaterial: {
+			type: String,
+			default: null,
+		},
+
+		watchDescription: {
+			type: String,
+			default: null,
 		},
 
 		memberId: {
@@ -88,6 +139,6 @@ const WatchSchema = new Schema(
 	{ timestamps: true, collection: 'watches' },
 );
 
-WatchSchema.index({ watchType: 1, watchLocation: 1, watchTitle: 1, watchPrice: 1 }, { unique: true });
+WatchSchema.index({ watchType: 1, watchModelName: 1, watchPrice: 1 }, { unique: false });
 
 export default WatchSchema;

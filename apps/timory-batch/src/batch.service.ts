@@ -28,7 +28,7 @@ export class BatchService {
 			.updateMany(
 				{
 					memberStatus: MemberStatus.ACTIVE,
-					memberType: { $in: [MemberType.BRAND, MemberType.DEALER] },
+					memberType: MemberType.DEALER,
 				},
 				{ memberRank: 0 },
 			)
@@ -55,7 +55,7 @@ export class BatchService {
 		const members: Member[] = await this.memberModel
 			.find({
 				memberStatus: MemberStatus.ACTIVE,
-				memberType: { $in: [MemberType.BRAND, MemberType.DEALER] },
+				memberType: MemberType.DEALER,
 				memberRank: 0,
 			})
 			.exec();

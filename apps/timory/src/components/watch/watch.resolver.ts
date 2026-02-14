@@ -3,7 +3,6 @@ import { WatchService } from './watch.service';
 import { Watch, Watches } from '../../libs/dto/watch/watch';
 import {
 	AllWatchesInquiry,
-	BrandWatchesInquiry,
 	DealerWatchesInquiry,
 	OrdinaryInquiry,
 	WatchesInquiry,
@@ -24,28 +23,16 @@ import { AuthGuard } from '../auth/guards/auth.guards';
 export class WatchResolver {
 	constructor(private readonly watchService: WatchService) {}
 
-	@Roles(MemberType.BRAND)
-	@UseGuards(RolesGuard)
-	@Mutation(() => Watch)
-	public async createBrandWatch(
-		@Args('input') input: WatchInput,
-		@AuthMember('_id') memberId: ObjectId,
-	): Promise<Watch> {
-		console.log('Mutation: createBrandWatch');
-		input.memberId = memberId;
-		return await this.watchService.createBrandWatch(input);
-	}
-
 	@Roles(MemberType.DEALER)
 	@UseGuards(RolesGuard)
 	@Mutation(() => Watch)
-	public async createDealerWatch(
+	public async createWatch(
 		@Args('input') input: WatchInput,
 		@AuthMember('_id') memberId: ObjectId,
 	): Promise<Watch> {
-		console.log('Mutation: createDealerWatch');
+		console.log('Mutation: createWatch');
 		input.memberId = memberId;
-		return await this.watchService.createDealerWatch(input);
+		return await this.watchService.createWatch(input);
 	}
 
 	@UseGuards(WithoutGuard)
@@ -56,7 +43,7 @@ export class WatchResolver {
 		return await this.watchService.getWatch(memberId, watchtId);
 	}
 
-	@Roles(MemberType.BRAND, MemberType.DEALER)
+	@Roles(MemberType.DEALER)
 	@UseGuards(RolesGuard)
 	@Mutation((returns) => Watch)
 	public async updateWatch(@Args('input') input: WatchUpdate, @AuthMember('_id') memberId: ObjectId): Promise<Watch> {
@@ -93,17 +80,6 @@ export class WatchResolver {
 	): Promise<Watches> {
 		console.log('Query: getVisited');
 		return await this.watchService.getVisited(memberId, input);
-	}
-
-	@Roles(MemberType.BRAND)
-	@UseGuards(RolesGuard)
-	@Query(() => Watches) // GraphQL’da qaytadigan obyekt turi (Watches yoki WatchList)
-	public async getBrandWatches(
-		@Args('input') input: BrandWatchesInquiry,
-		@AuthMember('_id') brandId: ObjectId,
-	): Promise<Watches> {
-		console.log('Query: getBrandWatches');
-		return await this.watchService.getBrandWatches(brandId, input);
 	}
 
 	@Roles(MemberType.DEALER)

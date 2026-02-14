@@ -23,14 +23,17 @@ export class WatchUpdate {
   watchLocation?: WatchLocation;
 
   @IsOptional()
-  @Length(3, 100)
   @Field(() => String, { nullable: true })
   watchAddress?: string;
 
   @IsOptional()
-  @Length(3, 100)
+  @Length(2, 200)
   @Field(() => String, { nullable: true })
-  watchTitle?: string;
+  watchModelName?: string;
+
+  @IsOptional()
+  @Field(() => Boolean, { nullable: true })
+  watchLimitedEdition?: boolean;
 
   @IsOptional()
   @Field(() => Number, { nullable: true })
@@ -41,13 +44,44 @@ export class WatchUpdate {
   watchImages?: string[];
 
   @IsOptional()
-  @Length(5, 500)
   @Field(() => String, { nullable: true })
-  watchDesc?: string;
+  watchBrand?: string;
 
   @IsOptional()
-  @Field(() => [String], { nullable: true })
-  dealerIds?: string[];
+  @Field(() => String, { nullable: true })
+  watchColor?: string;
+
+  @IsOptional()
+  @Field(() => String, { nullable: true })
+  watchCaseShape?: string;
+
+  @IsOptional()
+  @Field(() => String, { nullable: true })
+  watchCaseSize?: string;
+
+  @IsOptional()
+  @Field(() => String, { nullable: true })
+  watchCountry?: string;
+
+  @IsOptional()
+  @Field(() => String, { nullable: true })
+  watchMakeData?: string;
+
+  @IsOptional()
+  @Field(() => Number, { nullable: true })
+  watchWaterResistance?: number;
+
+  @IsOptional()
+  @Field(() => Number, { nullable: true })
+  watchAvailability?: number;
+
+  @IsOptional()
+  @Field(() => String, { nullable: true })
+  watchMaterial?: string;
+
+  @IsOptional()
+  @Field(() => String, { nullable: true })
+  watchDescription?: string;
 
   @IsOptional()
   @Field(() => Date, { nullable: true })

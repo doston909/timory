@@ -41,7 +41,7 @@ export class BatchController {
 
 	/**
 	 * 3) Har kuni soat 01:00:40 da TOP MEMBERS ni qayta hisoblaydi
-	 * BRAND + DEALER lar uchun
+	 * DEALER lar uchun
 	 */
 	@Cron('40 00 01 * * *', { name: BATCH_TOP_MEMBERS })
 	public async batchTopMembers() {

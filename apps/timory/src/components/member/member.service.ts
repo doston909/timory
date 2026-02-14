@@ -3,7 +3,6 @@ import { InjectModel } from '@nestjs/mongoose';
 import { Model, ObjectId } from 'mongoose';
 import { Member, Members } from '../../libs/dto/member/member';
 import {
-	BrandsInquiry,
 	DealersInquiry,
 	LoginInput,
 	MemberInput,
@@ -128,32 +127,6 @@ export class MemberService {
 	private async checkSubscription(followerId: ObjectId, followingId: ObjectId): Promise<MeFollowed[]> {
 		const result = await this.followModel.findOne({ followingId: followingId, followerId: followerId }).exec();
 		return result ? [{ followerId: followerId, followingId: followingId, myFollowing: true }] : [];
-	}
-
-	public async getBrands(memberId: ObjectId, input: BrandsInquiry): Promise<Members> {
-		const { text } = input.search;
-		const match: T = { memberType: MemberType.BRAND, memberStatus: MemberStatus.ACTIVE };
-		const sort: T = { [input?.sort ?? 'createdAt']: input?.direction ?? Direction.DESC };
-
-		if (text) match.memberNick = { $regex: new RegExp(text, 'i') };
-		console.log('match:', match);
-
-		const result = await this.memberModel
-			.aggregate([
-				{ $match: match },
-				{ $sort: sort },
-				{
-					$facet: {
-						list: [{ $skip: (input.page - 1) * input.limit }, { $limit: input.limit },
-							lookupAuthMemberLiked(memberId),
-						],
-						metaCounter: [{ $count: 'total' }],
-					},
-				},
-			])
-			.exec();
-		if (!result.length) throw new InternalServerErrorException(Message.NO_DATA_FOUND);
-		return result[0];
 	}
 
 	public async getDealers(memberId: ObjectId, input: DealersInquiry): Promise<Members> {

@@ -28,10 +28,10 @@ export class NotificationService {
 				watchData: {
 					watchType: watch.watchType,
 					watchLocation: watch.watchLocation,
-					watchTitle: watch.watchTitle,
+					watchModelName: watch.watchModelName,
 					watchPrice: watch.watchPrice,
 					watchImages: watch.watchImages,
-					watchDesc: watch.watchDesc,
+					watchDescription: watch.watchDescription,
 				},
 			}));
 

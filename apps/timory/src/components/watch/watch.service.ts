@@ -5,7 +5,6 @@ import { Watch, Watches } from '../../libs/dto/watch/watch';
 import { MemberService } from '../member/member.service';
 import {
 	AllWatchesInquiry,
-	BrandWatchesInquiry,
 	DealerWatchesInquiry,
 	OrdinaryInquiry,
 	WatchesInquiry,
@@ -23,8 +22,6 @@ import { lookupAuthMemberLiked, lookupMember, shapeIntoMongoObjectId } from '../
 import { LikeService } from '../like/like.service';
 import { LikeInput } from '../../libs/dto/like/like.input';
 import { LikeGroup } from '../../libs/enums/like.enum';
-import { NotificationService } from '../notification/notification.service';
-
 @Injectable()
 export class WatchService {
 	constructor(
@@ -32,54 +29,19 @@ export class WatchService {
 		private memberService: MemberService,
 		private viewService: ViewService,
 		private likeService: LikeService,
-		private notificationService: NotificationService,
 	) {}
 
-	public async createBrandWatch(input: WatchInput): Promise<Watch> {
-		try {
-			const brand = await this.memberService.getMemberById(input.memberId);
-			if (!brand || brand.memberType !== MemberType.BRAND) throw new BadRequestException(Message.ONLY_BRAND);
-
-			let dealerId: string[] = [];
-
-			if (input.dealerId?.length) {
-				const dealers = await this.memberService.findDealersByIds(input.dealerId);
-				dealerId = dealers.map((d) => d._id.toString());
-			}
-
-			const result = await this.watchModel.create({
-				...input,
-				memberId: brand._id,
-				dealerId,
-			});
-
-			await this.memberService.memberStatusEditor({
-				_id: brand._id,
-				targetKey: 'memberWatches',
-				modifier: 1,
-			});
-
-			if (dealerId.length) {
-				await this.notificationService.notifyDealers(dealerId, result, brand);
-			}
-
-			return result;
-		} catch (err) {
-			console.log('Error, createBrandWatch:', err.message);
-			throw new BadRequestException(Message.ALREADY_CREATED);
-		}
-	}
-
-	public async createDealerWatch(input: WatchInput): Promise<Watch> {
+	/** Faqat DEALER soat yarata oladi */
+	public async createWatch(input: WatchInput): Promise<Watch> {
 		try {
 			const dealer = await this.memberService.getMemberById(input.memberId);
 			if (!dealer || dealer.memberType !== MemberType.DEALER)
-				throw new BadRequestException('Faqat DEALER watch yaratishi mumkin.');
+				throw new BadRequestException('Faqat DEALER soat yarata oladi.');
 
 			const result = await this.watchModel.create({
 				...input,
 				memberId: dealer._id,
-				dealerIds: [dealer._id], // faqat o‘zi sotishi mumkin
+				dealerId: [dealer._id],
 			});
 
 			await this.memberService.memberStatusEditor({
@@ -90,7 +52,7 @@ export class WatchService {
 
 			return result;
 		} catch (err) {
-			console.log('Error, createDealerWatch:', err.message);
+			console.log('Error, createWatch:', err.message);
 			throw new BadRequestException('Soat yaratishda xatolik yuz berdi.');
 		}
 	}
@@ -238,9 +200,9 @@ export class WatchService {
 
 		if (text && text.trim().length > 0)
 			match.$or = [
-				{ watchTitle: { $regex: new RegExp(text, 'i') } },
-				{ watchModel: { $regex: new RegExp(text, 'i') } },
-				{ description: { $regex: new RegExp(text, 'i') } },
+				{ watchModelName: { $regex: new RegExp(text, 'i') } },
+				{ watchBrand: { $regex: new RegExp(text, 'i') } },
+				{ watchDescription: { $regex: new RegExp(text, 'i') } },
 			];
 
 		if (options && options.length > 0) {
@@ -258,7 +220,7 @@ export class WatchService {
 		return await this.viewService.getVisitedWatches(memberId, input);
 	}
 
-	public async getBrandWatches(memberId: ObjectId, input: BrandWatchesInquiry): Promise<Watches> {
+	public async getDealerWatches(memberId: ObjectId, input: DealerWatchesInquiry): Promise<Watches> {
 		const { watchStatus, text } = input.search;
 
 		if (watchStatus === WatchStatus.DELETE) {
@@ -272,66 +234,8 @@ export class WatchService {
 
 		if (text) {
 			match.$or = [
-				{ watchTitle: { $regex: new RegExp(text, 'i') } },
-				{ description: { $regex: new RegExp(text, 'i') } },
-			];
-		}
-		console.log('match:', match);
-
-		const sort: T = {
-			[input?.sort ?? 'createdAt']: input?.direction ?? Direction.DESC,
-		};
-
-		const result = await this.watchModel
-			.aggregate([
-				{ $match: match },
-				{ $sort: sort },
-				{
-					$facet: {
-						list: [
-							{ $skip: (input.page - 1) * input.limit },
-							{ $limit: input.limit },
-							{
-								$lookup: {
-									from: 'members',
-									localField: 'memberId',
-									foreignField: '_id',
-									as: 'memberData',
-								},
-							},
-							{ $unwind: '$memberData' },
-						],
-						metaCounter: [{ $count: 'total' }],
-					},
-				},
-			])
-			.exec();
-
-		if (!result.length) {
-			throw new InternalServerErrorException(Message.NO_DATA_FOUND);
-		}
-
-		return result[0];
-	}
-
-	public async getDealerWatches(memberId: ObjectId, input: DealerWatchesInquiry): Promise<Watches> {
-		const { watchStatus, brandId, text } = input.search;
-
-		if (watchStatus === WatchStatus.DELETE) {
-			throw new BadRequestException(Message.NOT_ALLOWED_REQUEST);
-		}
-
-		const match: T = {
-			memberId: memberId,
-			watchStatus: watchStatus ?? { $ne: WatchStatus.DELETE },
-		};
-
-		if (brandId) match.brandId = shapeIntoMongoObjectId(brandId);
-
-		if (text) {
-			match.$or = [
-				{ watchTitle: { $regex: new RegExp(text, 'i') } },
-				{ description: { $regex: new RegExp(text, 'i') } },
+				{ watchModelName: { $regex: new RegExp(text, 'i') } },
+				{ watchDescription: { $regex: new RegExp(text, 'i') } },
 			];
 		}
 

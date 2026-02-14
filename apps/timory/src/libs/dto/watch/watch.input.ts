@@ -9,65 +9,67 @@ import { availableWatchOptions, availableWatchSorts } from '../../config';
 @InputType()
 export class WatchInput {
 	@IsNotEmpty()
-	@Field(() => WatchType)
-	watchType: WatchType;
-
-	@IsNotEmpty()
-	@Field(() => WatchLocation)
-	watchLocation: WatchLocation;
-
-	@IsNotEmpty()
-	@Length(3, 100)
-	@Field(() => String)
-	watchAddress: string;
-
-	@IsNotEmpty()
-	@Length(3, 100)
-	@Field(() => String)
-	watchTitle: string;
-
-	@IsOptional()
-	@Field(() => Number)
-	watchPrice: number;
-
-	@IsNotEmpty()
 	@Field(() => [String])
 	watchImages: string[];
 
-	@IsOptional()
-	@Length(5, 500)
-	@Field(() => String, { nullable: true })
-	watchDesc?: string;
+	@IsNotEmpty()
+	@Length(2, 200)
+	@Field(() => String)
+	watchModelName: string;
 
 	@IsOptional()
 	@Field(() => Boolean, { nullable: true })
-	watchBarter?: boolean;
+	watchLimitedEdition?: boolean;
 
 	@IsOptional()
 	@Field(() => String, { nullable: true })
 	watchBrand?: string;
 
-	@IsOptional()
-	@Field(() => String, { nullable: true })
-	watchModel?: string;
+	@IsNotEmpty()
+	@Field(() => WatchType)
+	watchType: WatchType;
+
+	@IsNotEmpty()
+	@Field(() => Number)
+	watchPrice: number;
 
 	@IsOptional()
 	@Field(() => String, { nullable: true })
-	currency?: string;
+	watchColor?: string;
 
 	@IsOptional()
-	@Field(() => Int, { nullable: true })
-	discountPercent?: number;
+	@Field(() => String, { nullable: true })
+	watchCaseShape?: string;
 
 	@IsOptional()
-	@Field(() => [String], { nullable: true })
-	dealerId?: string[];
+	@Field(() => String, { nullable: true })
+	watchCaseSize?: string;
+
+	@IsOptional()
+	@Field(() => String, { nullable: true })
+	watchCountry?: string;
+
+	@IsOptional()
+	@Field(() => String, { nullable: true })
+	watchMakeData?: string;
+
+	@IsOptional()
+	@Field(() => Number, { nullable: true })
+	watchWaterResistance?: number;
+
+	@IsOptional()
+	@Field(() => Number, { nullable: true })
+	watchAvailability?: number;
+
+	@IsOptional()
+	@Field(() => String, { nullable: true })
+	watchMaterial?: string;
+
+	@IsOptional()
+	@Field(() => String, { nullable: true })
+	watchDescription?: string;
 
 	memberId?: ObjectId;
-
-	@IsOptional()
-	@Field(() => Date, { nullable: true })
-	makedAt?: Date;
 }
 
 @InputType()
@@ -169,59 +171,10 @@ export class WatchesInquiry {
 }
 
 @InputType()
-class BWISearch {
-	@IsOptional()
-	@Field(() => WatchStatus, { nullable: true })
-	watchStatus?: WatchStatus;
-
-	@IsOptional()
-	@Field(() => String, { nullable: true })
-	brandId?: string;
-
-	@IsOptional()
-	@Field(() => String, { nullable: true })
-	text?: string;
-}
-
-@InputType()
-export class BrandWatchesInquiry {
-	@IsNotEmpty()
-	@Min(1)
-	@Field(() => Int)
-	page: number;
-
-	@IsNotEmpty()
-	@Min(1)
-	@Field(() => Int)
-	limit: number;
-
-	@IsOptional()
-	@IsIn(availableWatchSorts)
-	@Field(() => String, { nullable: true })
-	sort?: string;
-
-	@IsOptional()
-	@Field(() => Direction, { nullable: true })
-	direction?: Direction;
-
-	@IsNotEmpty()
-	@Field(() => BWISearch)
-	search: BWISearch;
-}
-
-@InputType()
 class DWISearch {
 	@IsOptional()
 	@Field(() => WatchStatus, { nullable: true })
 	watchStatus?: WatchStatus;
-
-	@IsOptional()
-	@Field(() => String, { nullable: true })
-	dealerId?: string;
-
-	@IsOptional()
-	@Field(() => String, { nullable: true })
-	brandId?: string;
 
 	@IsOptional()
 	@Field(() => String, { nullable: true })
