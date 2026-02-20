@@ -27,7 +27,10 @@ export class BoardArticleService {
 	public async createBoardArticle(memberId: ObjectId, input: BoardArticleInput): Promise<BoardArticle> {
 		input.memberId = memberId;
 		try {
-			const result = await this.boardArticleModel.create(input);
+			const result = await this.boardArticleModel.create({
+				...input,
+				articleStatus: BoardArticleStatus.PUBLISHING,
+			});
 			await this.memberService.memberStatusEditor({
 				_id: memberId,
 				targetKey: 'memberArticles',
@@ -44,7 +47,7 @@ export class BoardArticleService {
 	public async getBoardArticle(memberId: ObjectId, articleId: ObjectId): Promise<BoardArticle> {
 		const search: T = {
 			_id: articleId,
-			articleStatus: BoardArticleStatus.ACTIVE,
+			articleStatus: BoardArticleStatus.PUBLISHING,
 		};
 
 		const targetBoardArticle: BoardArticle = await this.boardArticleModel.findOne(search).lean().exec();
@@ -71,29 +74,40 @@ export class BoardArticleService {
 
 	public async updateBoardArticle(memberId: ObjectId, input: BoardArticleUpdate): Promise<BoardArticle> {
 		const { _id, articleStatus } = input;
+		const id = shapeIntoMongoObjectId(_id);
 
-		const result = await this.boardArticleModel
-			.findOneAndUpdate({ _id: _id, memberId: memberId, articleStatus: BoardArticleStatus.ACTIVE }, input, {
-				new: true,
-			})
-			.exec();
-
-		if (!result) throw new InternalServerErrorException(Message.UPDATE_FAILED);
-
-		if (articleStatus === BoardArticleStatus.DELETE) {
+		if (articleStatus === BoardArticleStatus.REMOVE) {
+			const doc = await this.boardArticleModel.findOneAndDelete({
+				_id: id,
+				memberId: memberId,
+				articleStatus: { $in: [BoardArticleStatus.PUBLISHING, BoardArticleStatus.DELETE] },
+			}).exec();
+			if (!doc) throw new InternalServerErrorException(Message.UPDATE_FAILED);
 			await this.memberService.memberStatusEditor({
 				_id: memberId,
 				targetKey: 'memberArticles',
 				modifier: -1,
 			});
+			return doc as BoardArticle;
 		}
 
+		const updatePayload = { ...input };
+		delete updatePayload._id;
+		const result = await this.boardArticleModel
+			.findOneAndUpdate(
+				{ _id: id, memberId: memberId, articleStatus: { $in: [BoardArticleStatus.PUBLISHING, BoardArticleStatus.DELETE] } },
+				{ $set: updatePayload },
+				{ new: true },
+			)
+			.exec();
+
+		if (!result) throw new InternalServerErrorException(Message.UPDATE_FAILED);
 		return result;
 	}
 
 	public async getBoardArticles(memberId: ObjectId, input: BoardArticlesInquiry): Promise<BoardArticles> {
 		const { articleCategory, text } = input.search;
-		const match: T = { articleStatus: BoardArticleStatus.ACTIVE };
+		const match: T = { articleStatus: BoardArticleStatus.PUBLISHING };
 		const sort: T = { [input?.sort ?? 'createdAt']: input?.direction ?? Direction.DESC };
 
 		if (articleCategory) match.articleCategory = articleCategory;
@@ -127,9 +141,41 @@ export class BoardArticleService {
 		return result[0];
 	}
 
+	public async getMyBoardArticles(memberId: ObjectId, input: BoardArticlesInquiry): Promise<BoardArticles> {
+		const { articleCategory, text } = input.search;
+		const match: T = {
+			memberId: memberId,
+			articleStatus: { $in: [BoardArticleStatus.PUBLISHING, BoardArticleStatus.DELETE] },
+		};
+		const sort: T = { [input?.sort ?? 'createdAt']: input?.direction ?? Direction.DESC };
+		if (articleCategory) match.articleCategory = articleCategory;
+		if (text) match.articleTitle = { $regex: new RegExp(text, 'i') };
+
+		const result = await this.boardArticleModel
+			.aggregate([
+				{ $match: match },
+				{ $sort: sort },
+				{
+					$facet: {
+						list: [
+							{ $skip: (input.page - 1) * input.limit },
+							{ $limit: input.limit },
+							lookupAuthMemberLiked(memberId),
+							lookupMember,
+							{ $unwind: '$memberData' },
+						],
+						metaCounter: [{ $count: 'total' }],
+					},
+				},
+			])
+			.exec();
+		if (!result.length) throw new InternalServerErrorException(Message.NO_DATA_FOUND);
+		return result[0];
+	}
+
 	public async likeTargetBoardArticle(memberId: ObjectId, likeRefId: ObjectId): Promise<BoardArticle> {
 		const target: BoardArticle = await this.boardArticleModel
-			.findOne({ _id: likeRefId, articleStatus: BoardArticleStatus.ACTIVE })
+			.findOne({ _id: likeRefId, articleStatus: BoardArticleStatus.PUBLISHING })
 			.exec();
 		if (!target) throw new InternalServerErrorException(Message.NO_DATA_FOUND);
 
@@ -185,31 +231,44 @@ export class BoardArticleService {
 
 	public async updateBoardArticleByAdmin(input: BoardArticleUpdate): Promise<BoardArticle> {
 		const { _id, articleStatus } = input;
+		const id = shapeIntoMongoObjectId(_id);
 
-		const result = await this.boardArticleModel
-			.findOneAndUpdate({ _id: _id, articleStatus: BoardArticleStatus.ACTIVE }, input, {
-				new: true,
-			})
-			.exec();
-		if (!result) throw new InternalServerErrorException(Message.UPDATE_FAILED);
-
-		if (articleStatus === BoardArticleStatus.DELETE) {
+		if (articleStatus === BoardArticleStatus.REMOVE) {
+			const doc = await this.boardArticleModel.findOneAndDelete({
+				_id: id,
+				articleStatus: { $in: [BoardArticleStatus.PUBLISHING, BoardArticleStatus.DELETE] },
+			}).exec();
+			if (!doc) throw new InternalServerErrorException(Message.REMOVE_FAILED);
 			await this.memberService.memberStatusEditor({
-				_id: result.memberId,
+				_id: doc.memberId,
 				targetKey: 'memberArticles',
 				modifier: -1,
 			});
+			return doc as BoardArticle;
 		}
 
+		const updatePayload = { ...input };
+		delete updatePayload._id;
+		const result = await this.boardArticleModel
+			.findOneAndUpdate(
+				{ _id: id, articleStatus: { $in: [BoardArticleStatus.PUBLISHING, BoardArticleStatus.DELETE] } },
+				{ $set: updatePayload },
+				{ new: true },
+			)
+			.exec();
+		if (!result) throw new InternalServerErrorException(Message.UPDATE_FAILED);
 		return result;
 	}
 
 	public async removeBoardArticleByAdmin(articleId: ObjectId): Promise<BoardArticle> {
-		const search: T = { _id: articleId, articleStatus: BoardArticleStatus.DELETE };
-		const result = await this.boardArticleModel.findOneAndDelete(search).exec();
-		if (!result) throw new InternalServerErrorException(Message.REMOVE_FAILED);
-
-		return result;
+		const doc = await this.boardArticleModel.findByIdAndDelete(articleId).exec();
+		if (!doc) throw new InternalServerErrorException(Message.REMOVE_FAILED);
+		await this.memberService.memberStatusEditor({
+			_id: doc.memberId,
+			targetKey: 'memberArticles',
+			modifier: -1,
+		});
+		return doc as BoardArticle;
 	}
 
 	public async boardArticleStatusEditor(input: StatisticModifier): Promise<BoardArticle> {

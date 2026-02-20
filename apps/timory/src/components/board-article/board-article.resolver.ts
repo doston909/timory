@@ -60,8 +60,17 @@ export class BoardArticleResolver {
 		@AuthMember('_id') memberId: ObjectId,
 	): Promise<BoardArticles> {
 		console.log('Query: getBoardArticles');
-		const articleId = shapeIntoMongoObjectId(input);
 		return await this.boardArticleService.getBoardArticles(memberId, input);
+	}
+
+	@UseGuards(AuthGuard)
+	@Query((returns) => BoardArticles)
+	public async getMyBoardArticles(
+		@Args('input') input: BoardArticlesInquiry,
+		@AuthMember('_id') memberId: ObjectId,
+	): Promise<BoardArticles> {
+		console.log('Query: getMyBoardArticles');
+		return await this.boardArticleService.getMyBoardArticles(memberId, input);
 	}
 
 	@UseGuards(AuthGuard)

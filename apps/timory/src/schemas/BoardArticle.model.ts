@@ -12,7 +12,7 @@ const BoardArticleSchema = new Schema(
 		articleStatus: {
 			type: String,
 			enum: BoardArticleStatus,
-			default: BoardArticleStatus.ACTIVE,
+			default: BoardArticleStatus.PUBLISHING,
 		},
 
 		articleTitle: {
