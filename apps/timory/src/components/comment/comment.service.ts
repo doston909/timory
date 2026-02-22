@@ -61,20 +61,66 @@ export class CommentService {
 	}
 
 	public async updateComment(memberId: ObjectId, input: CommentUpdate): Promise<Comment> {
-		const { _id } = input;
+		const { _id, commentContent, commentStatus } = input;
+		const update: T = { updatedAt: new Date() };
+		if (commentContent !== undefined) update.commentContent = commentContent;
+		if (commentStatus !== undefined) update.commentStatus = commentStatus;
 		const result = await this.commentModel.findOneAndUpdate(
 			{
 				_id: _id,
 				memberId: memberId,
 				commentStatus: CommentStatus.ACTIVE,
 			},
-			input,
+			update,
 			{
 				new: true,
 			},
 		).exec();
-		
+
 		if (!result) throw new InternalServerErrorException(Message.UPDATE_FAILED);
+		return result;
+	}
+
+	/** Faqat comment yozgan member o‘z commentini o‘chira oladi (soft delete) */
+	public async removeComment(memberId: ObjectId, commentId: ObjectId): Promise<Comment> {
+		const comment = await this.commentModel
+			.findOne({ _id: commentId, memberId: memberId, commentStatus: CommentStatus.ACTIVE })
+			.lean()
+			.exec();
+		if (!comment) throw new InternalServerErrorException(Message.REMOVE_FAILED);
+
+		const result = await this.commentModel
+			.findByIdAndUpdate(
+				{ _id: commentId, memberId: memberId },
+				{ commentStatus: CommentStatus.DELETE },
+				{ new: true },
+			)
+			.exec();
+		if (!result) throw new InternalServerErrorException(Message.REMOVE_FAILED);
+
+		switch (comment.commentGroup) {
+			case CommentGroup.WATCH:
+				await this.watchService.watchStatusEditor({
+					_id: comment.commentRefId,
+					targetKey: 'watchComments',
+					modifier: -1,
+				});
+				break;
+			case CommentGroup.ARTICLE:
+				await this.boardArticleService.boardArticleStatusEditor({
+					_id: comment.commentRefId,
+					targetKey: 'articleComments',
+					modifier: -1,
+				});
+				break;
+			case CommentGroup.MEMBER:
+				await this.memberService.memberStatusEditor({
+					_id: comment.commentRefId,
+					targetKey: 'memberComments',
+					modifier: -1,
+				});
+				break;
+		}
 		return result;
 	}
 
@@ -94,16 +140,18 @@ export class CommentService {
 							{ $limit: input.limit },
 							// meLiked
 							lookupMember,
-							{ $unwind: '$memberData' },
+							{ $unwind: { path: '$memberData', preserveNullAndEmptyArrays: true } },
 						],
 						metaCounter: [{ $count: 'total' }],
 					},
 				},
 			])
 			.exec();
-		if (!result.length) throw new InternalServerErrorException(Message.NO_DATA_FOUND);
 
-		return result[0];
+		const out = result[0];
+		if (!out) return { list: [], metaCounter: [{ total: 0 }] };
+		if (!out.metaCounter?.length) out.metaCounter = [{ total: 0 }];
+		return out;
 	}
 
 	public async removeCommentByAdmin(commentId: ObjectId): Promise<Comment> {

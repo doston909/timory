@@ -64,9 +64,6 @@ export class Member {
 	memberRank: number;
 
 	@Field(() => Int)
-	memberWarnings: number;
-
-	@Field(() => Int)
 	memberBlocks: number;
 
 	@Field(() => Date, { nullable: true })

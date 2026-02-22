@@ -1,4 +1,4 @@
-import { BadRequestException, Injectable, InternalServerErrorException } from '@nestjs/common';
+import { BadRequestException, Injectable, InternalServerErrorException, Logger } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model, ObjectId } from 'mongoose';
 import { BoardArticle, BoardArticles } from '../../libs/dto/board-article/board-article';
@@ -6,7 +6,7 @@ import { ViewService } from '../view/view.service';
 import { MemberService } from '../member/member.service';
 import { AllBoardArticlesInquiry, BoardArticleInput, BoardArticlesInquiry } from '../../libs/dto/board-article/board-article.input';
 import { Direction, Message } from '../../libs/enums/common.enum';
-import { BoardArticleStatus } from '../../libs/enums/board-article.enum';
+import { BoardArticleCategory, BoardArticleStatus, CREATE_ARTICLE_CATEGORIES } from '../../libs/enums/board-article.enum';
 import { StatisticModifier, T } from '../../libs/types/common';
 import { ViewGroup } from '../../libs/enums/view.enum';
 import { BoardArticleUpdate } from '../../libs/dto/board-article/board-article.update';
@@ -17,6 +17,8 @@ import { LikeGroup } from '../../libs/enums/like.enum';
 
 @Injectable()
 export class BoardArticleService {
+	private readonly logger = new Logger(BoardArticleService.name);
+
 	constructor(
 		@InjectModel('BoardArticle') private readonly boardArticleModel: Model<BoardArticle>,
 		private readonly memberService: MemberService,
@@ -25,12 +27,25 @@ export class BoardArticleService {
 	) {}
 
 	public async createBoardArticle(memberId: ObjectId, input: BoardArticleInput): Promise<BoardArticle> {
+		this.logger.log(`createBoardArticle service: title="${input.articleTitle?.slice(0, 30)}..."`);
+		if (!CREATE_ARTICLE_CATEGORIES.includes(input.articleCategory)) {
+			throw new BadRequestException(
+				'articleCategory must be one of: Free board (FREE), Recommendation (RECOMMEND), News (NEWS)',
+			);
+		}
 		input.memberId = memberId;
 		try {
-			const result = await this.boardArticleModel.create({
-				...input,
+			const payload: T = {
+				articleCategory: input.articleCategory,
+				articleTitle: input.articleTitle,
+				articleContent: input.articleContent,
 				articleStatus: BoardArticleStatus.PUBLISHING,
-			});
+				memberId,
+			};
+			if (input.articleImage != null && input.articleImage !== '') {
+				payload.articleImage = input.articleImage;
+			}
+			const result = await this.boardArticleModel.create(payload);
 			await this.memberService.memberStatusEditor({
 				_id: memberId,
 				targetKey: 'memberArticles',
@@ -39,8 +54,9 @@ export class BoardArticleService {
 
 			return result;
 		} catch (err) {
-			console.log('Error, Service.model:', err.message);
-			throw new BadRequestException(Message.CREATE_FAILED);
+			this.logger.warn(`createBoardArticle failed: ${err?.message}`);
+			const message = err?.message ?? Message.CREATE_FAILED;
+			throw new BadRequestException(message);
 		}
 	}
 
@@ -193,7 +209,7 @@ export class BoardArticleService {
 		});
 
 		if (!result) throw new InternalServerErrorException(Message.SOMETHING_WENT_WRONG);
-		return result;
+		return await this.getBoardArticle(memberId, likeRefId);
 	}
 
     /** ADMIN **/

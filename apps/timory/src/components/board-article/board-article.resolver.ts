@@ -1,6 +1,6 @@
 import { Args, Mutation, Query, Resolver } from '@nestjs/graphql';
 import { BoardArticleService } from './board-article.service';
-import { UseGuards } from '@nestjs/common';
+import { Logger, UseGuards } from '@nestjs/common';
 import { AuthGuard } from '../auth/guards/auth.guards';
 import { BoardArticle, BoardArticles } from '../../libs/dto/board-article/board-article';
 import { AuthMember } from '../auth/decorators/authMember.decorator';
@@ -19,6 +19,8 @@ import { RolesGuard } from '../auth/guards/roles.guards';
 
 @Resolver()
 export class BoardArticleResolver {
+	private readonly logger = new Logger(BoardArticleResolver.name);
+
 	constructor(private readonly boardArticleService: BoardArticleService) {}
 
 	@UseGuards(AuthGuard)
@@ -27,7 +29,7 @@ export class BoardArticleResolver {
 		@Args('input') input: BoardArticleInput,
 		@AuthMember('_id') memberId: ObjectId,
 	): Promise<BoardArticle> {
-		console.log('Mutation: createBoardArticle');
+		this.logger.log('createBoardArticle called');
 		return await this.boardArticleService.createBoardArticle(memberId, input);
 	}
 

@@ -42,6 +42,7 @@ export class WatchService {
 				...input,
 				memberId: dealer._id,
 				dealerId: [dealer._id],
+				watchStatus: WatchStatus.ACTIVE,
 			});
 
 			await this.memberService.memberStatusEditor({
@@ -58,12 +59,7 @@ export class WatchService {
 	}
 
 	public async getWatch(memberId: ObjectId, watchId: ObjectId): Promise<Watch> {
-		const search: T = {
-			_id: watchId,
-			watchStatus: WatchStatus.ACTIVE,
-		};
-
-		const targetWatch: Watch = await this.watchModel.findOne(search).lean().exec();
+		const targetWatch: Watch = await this.watchModel.findOne({ _id: watchId }).lean().exec();
 		if (!targetWatch) throw new InternalServerErrorException(Message.NO_DATA_FOUND);
 
 		if (memberId) {
@@ -78,7 +74,11 @@ export class WatchService {
 			targetWatch.meLiked = await this.likeService.checkLikeExistence(likeInput);
 		}
 
-		targetWatch.memberData = await this.memberService.getMember(null, targetWatch.memberId);
+		try {
+			targetWatch.memberData = await this.memberService.getMember(null, targetWatch.memberId);
+		} catch {
+			targetWatch.memberData = null;
+		}
 		return targetWatch;
 	}
 
@@ -143,16 +143,18 @@ export class WatchService {
 							// meLiked
 							lookupAuthMemberLiked(memberId),
 							lookupMember,
-							{ $unwind: '$memberData' },
+							{ $unwind: { path: '$memberData', preserveNullAndEmptyArrays: true } },
 						],
 						metaCounter: [{ $count: 'total' }],
 					},
 				},
 			])
 			.exec();
-		if (!result.length) throw new InternalServerErrorException(Message.NO_DATA_FOUND);
 
-		return result[0];
+		const out = result[0];
+		if (!out) return { list: [], metaCounter: [{ total: 0 }] };
+		if (!out.metaCounter?.length) out.metaCounter = [{ total: 0 }];
+		return out;
 	}
 
 	private shapeMatchQuery(match: T, input: WatchesInquiry): void {
@@ -167,6 +169,7 @@ export class WatchService {
 			periodsRange,
 			options,
 			text,
+			watchLimitedEdition,
 		} = input.search;
 
 		if (brandId) match.memberId = shapeIntoMongoObjectId(brandId);
@@ -205,6 +208,9 @@ export class WatchService {
 				{ watchDescription: { $regex: new RegExp(text, 'i') } },
 			];
 
+		if (watchLimitedEdition !== undefined)
+			match.watchLimitedEdition = watchLimitedEdition;
+
 		if (options && options.length > 0) {
 			match.$and = options.map((opt) => ({
 				[`options.${opt}`]: true,
@@ -223,13 +229,10 @@ export class WatchService {
 	public async getDealerWatches(memberId: ObjectId, input: DealerWatchesInquiry): Promise<Watches> {
 		const { watchStatus, text } = input.search;
 
-		if (watchStatus === WatchStatus.DELETE) {
-			throw new BadRequestException(Message.NOT_ALLOWED_REQUEST);
-		}
-
+		// Dealer o‘z soatlarini ko‘radi: ACTIVE, SOLD, DELETE (mypage da hammasi ko‘rinsin)
 		const match: T = {
 			memberId: memberId,
-			watchStatus: watchStatus ?? { $ne: WatchStatus.DELETE },
+			watchStatus: watchStatus ?? { $in: [WatchStatus.ACTIVE, WatchStatus.SOLD, WatchStatus.DELETE] },
 		};
 
 		if (text) {
@@ -355,6 +358,22 @@ export class WatchService {
 		const result = await this.watchModel.findByIdAndDelete(search).exec();
 		if (!result) throw new InternalServerErrorException(Message.REMOVE_FAILED);
 
+		return result;
+	}
+
+	/** Dealer o‘z soatini butunlay o‘chiradi (REMOVE) */
+	public async removeWatch(memberId: ObjectId, watchId: ObjectId): Promise<Watch> {
+		const doc = await this.watchModel.findOne({ _id: watchId, memberId: memberId }).exec();
+		if (!doc) throw new InternalServerErrorException(Message.REMOVE_FAILED);
+		if (doc.watchStatus !== WatchStatus.DELETE) {
+			await this.memberService.memberStatusEditor({
+				_id: memberId,
+				targetKey: 'memberWatches',
+				modifier: -1,
+			});
+		}
+		const result = await this.watchModel.findByIdAndDelete(watchId).exec();
+		if (!result) throw new InternalServerErrorException(Message.REMOVE_FAILED);
 		return result;
 	}
 }

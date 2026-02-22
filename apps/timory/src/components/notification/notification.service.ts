@@ -21,7 +21,7 @@ export class NotificationService {
 				notificationType: NotificationType.NEW_WATCH,
 				notificationGroup: NotificationGroup.WATCH,
 				notificationTitle: 'New Watch Uploaded',
-				notificationDesc: `${brand.memberNick} has uploaded a new watch.`,
+				notificationDesc: `${brand.memberName} has uploaded a new watch.`,
 				authorId: brand._id,
 				receiverId: dealerId,
 				watchId: watch._id,
@@ -41,7 +41,7 @@ export class NotificationService {
 			dealerIds.forEach((dealerId) => {
 				this.socketGateway.sendDealerNotification(dealerId, {
 					title: 'New Watch Assigned',
-					message: `${brand.memberNick} has uploaded a new watch for you.`,
+					message: `${brand.memberName} has uploaded a new watch for you.`,
 					watchData: notifications[0].watchData,
 					watchId: watch._id,
 				});

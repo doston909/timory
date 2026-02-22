@@ -40,7 +40,7 @@ export class MemberResolver {
 	@UseGuards(AuthGuard)
 	@Query(() => String)
 	public async checkAuth(@AuthMember() authMember: Member): Promise<string> {
-		const name = authMember.memberName ?? authMember.memberEmail ?? authMember.memberNick ?? 'User';
+		const name = authMember.memberName ?? authMember.memberEmail ?? 'User';
 		return `Hi ${name}`;
 	}
 
@@ -48,7 +48,7 @@ export class MemberResolver {
 	@UseGuards(RolesGuard)
 	@Query(() => String)
 	public async checkAuthRoles(@AuthMember() authMember: Member): Promise<string> {
-		const name = authMember.memberName ?? authMember.memberEmail ?? authMember.memberNick ?? 'User';
+		const name = authMember.memberName ?? authMember.memberEmail ?? 'User';
 		return `Hi ${name}, you are ${authMember.memberType}, (memberid: ${authMember._id})`;
 	}
 
@@ -129,8 +129,11 @@ export class MemberResolver {
 		const validMime = validMimeTypes.includes(mimetype);
 		if (!validMime) throw new Error(Message.PROVIDE_ALLOWED_FORMAT);
 
+		const dir = `uploads/${target}`;
+		if (!existsSync(dir)) mkdirSync(dir, { recursive: true });
+
 		const imageName = getSerialForImage(filename);
-		const url = `uploads/${target}/${imageName}`;
+		const url = `${dir}/${imageName}`;
 		const stream = createReadStream();
 
 		const result = await new Promise((resolve, reject) => {

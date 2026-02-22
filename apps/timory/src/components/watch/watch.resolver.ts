@@ -52,6 +52,15 @@ export class WatchResolver {
 		return await this.watchService.updateWatch(memberId, input);
 	}
 
+	@Roles(MemberType.DEALER)
+	@UseGuards(RolesGuard)
+	@Mutation(() => Watch)
+	public async removeWatch(@Args('watchId') watchId: string, @AuthMember('_id') memberId: ObjectId): Promise<Watch> {
+		console.log('Mutation: removeWatch');
+		const id = shapeIntoMongoObjectId(watchId);
+		return await this.watchService.removeWatch(memberId, id);
+	}
+
 	@UseGuards(WithoutGuard)
 	@Query((returns) => Watches)
 	public async getWatches(

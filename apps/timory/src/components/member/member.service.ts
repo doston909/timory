@@ -50,7 +50,6 @@ export class MemberService {
 			const result = await this.memberModel.create({
 				memberName: input.memberName,
 				memberEmail: input.memberEmail,
-				memberNick: input.memberEmail,
 				memberPassword: hashedPassword,
 				memberType: input.memberType,
 			});
@@ -138,7 +137,12 @@ export class MemberService {
 		const match: T = { memberType: MemberType.DEALER, memberStatus: MemberStatus.ACTIVE };
 		const sort: T = { [input?.sort ?? 'createdAt']: input?.direction ?? Direction.DESC };
 
-		if (text) match.memberNick = { $regex: new RegExp(text, 'i') };
+		if (text) {
+			match.$or = [
+				{ memberName: { $regex: new RegExp(text, 'i') } },
+				{ memberEmail: { $regex: new RegExp(text, 'i') } },
+			];
+		}
 		console.log('match:', match);
 
 		const result = await this.memberModel
@@ -183,7 +187,12 @@ export class MemberService {
 
 		if (memberStatus) match.memberStatus = memberStatus;
 		if (memberType) match.memberType = memberType;
-		if (text) match.memberNick = { $regex: new RegExp(text, 'i') };
+		if (text) {
+			match.$or = [
+				{ memberName: { $regex: new RegExp(text, 'i') } },
+				{ memberEmail: { $regex: new RegExp(text, 'i') } },
+			];
+		}
 		console.log('match:', match);
 
 		const result = await this.memberModel
@@ -240,7 +249,7 @@ export class MemberService {
 					memberType: MemberType.DEALER,
 					memberStatus: MemberStatus.ACTIVE,
 				})
-				.select('_id memberNick memberPhone')
+				.select('_id memberName memberPhone')
 				.lean()
 				.exec();
 

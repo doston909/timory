@@ -38,26 +38,10 @@ const MemberSchema = new Schema(
 			// default yo'q — signupda yozilmasa maydon hujjatda bo'lmaydi, sparse index duplicate qilmaydi
 		},
 
-		memberNick: {
-			type: String,
-			index: { unique: true, sparse: true },
-			default: null,
-		},
-
 		memberPassword: {
 			type: String,
 			select: false,
 			required: true,
-		},
-
-		memberFullName: {
-			type: String,
-			default: null,
-		},
-
-		memberImage: {
-			type: String,
-			default: '',
 		},
 
 		memberPhoto: {
@@ -113,11 +97,6 @@ const MemberSchema = new Schema(
 		},
 
 		memberRank: {
-			type: Number,
-			default: 0,
-		},
-
-		memberWarnings: {
 			type: Number,
 			default: 0,
 		},

@@ -5,19 +5,25 @@ import { BoardArticleCategory, BoardArticleStatus } from '../../enums/board-arti
 import { Direction } from '../../enums/common.enum';
 import { availableBoardArticleSorts } from '../../config';
 
+/** Allowed article types for create: Free board (FREE), Recommendation (RECOMMEND), News (NEWS) */
+const ALLOWED_CREATE_CATEGORIES = [BoardArticleCategory.FREE, BoardArticleCategory.RECOMMEND, BoardArticleCategory.NEWS];
+
 @InputType()
 export class BoardArticleInput {
 	@IsNotEmpty()
+	@IsIn(ALLOWED_CREATE_CATEGORIES, {
+		message: 'articleCategory must be FREE (Free board), RECOMMEND (Recommendation), or NEWS (News)',
+	})
 	@Field(() => BoardArticleCategory)
 	articleCategory: BoardArticleCategory;
 
 	@IsNotEmpty()
-	@Length(3, 50)
+	@Length(3, 200)
 	@Field(() => String)
 	articleTitle: string;
 
 	@IsNotEmpty()
-	@Length(3, 250)
+	@Length(3, 15000)
 	@Field(() => String)
 	articleContent: string;
 

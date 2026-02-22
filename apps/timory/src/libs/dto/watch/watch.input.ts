@@ -142,6 +142,10 @@ class WISearch {
 	@IsOptional()
 	@Field(() => String, { nullable: true })
 	text?: string;
+
+	@IsOptional()
+	@Field(() => Boolean, { nullable: true })
+	watchLimitedEdition?: boolean;
 }
 
 @InputType()
