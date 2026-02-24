@@ -1,7 +1,7 @@
 import { BadRequestException, CanActivate, ExecutionContext, Injectable, ForbiddenException } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
 import { AuthService } from '../auth.service';
-import { Message } from 'apps/timory/src/libs/enums/common.enum';
+import { Message } from 'apps/timory-api/src/libs/enums/common.enum';
 
 
 @Injectable()

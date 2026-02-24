@@ -1,0 +1,23 @@
+version: '3.3'
+
+service:
+  timory:
+   container_name: timory
+   restart: always
+   image: node:20.10.0
+   ports:
+    - 4001:3007
+   volumes:
+    - ./:/
+   working_dir:
+    -
+
+   command: bash -c "npm install && npm run dev"
+
+networks:
+  monorepo-network:
+   driver: bridge
+
+
+# timory-next: localhost: 4000 <=> container:3003
+# timory-api: localhost: 4000 <=> container:3003

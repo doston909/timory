@@ -5,8 +5,8 @@ import { ConfigModule } from '@nestjs/config';
 import { DatabaseModule } from './database/database.module';
 import { ScheduleModule } from '@nestjs/schedule';
 import { MongooseModule } from '@nestjs/mongoose';
-import WatchSchema from 'apps/timory/src/schemas/Watch.model';
-import MemberSchema from 'apps/timory/src/schemas/Member.model';
+import WatchSchema from 'apps/timory-api/src/schemas/Watch.model';
+import MemberSchema from 'apps/timory-api/src/schemas/Member.model';
 
 @Module({
   imports: [

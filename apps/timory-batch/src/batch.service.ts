@@ -1,10 +1,10 @@
 import { Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
-import { Member } from 'apps/timory/src/libs/dto/member/member';
+import { Member } from 'apps/timory-api/src/libs/dto/member/member';
 
-import { Watch } from 'apps/timory/src/libs/dto/watch/watch';
-import { MemberStatus, MemberType } from 'apps/timory/src/libs/enums/member.enum';
-import { WatchStatus } from 'apps/timory/src/libs/enums/watch.enum';
+import { Watch } from 'apps/timory-api/src/libs/dto/watch/watch';
+import { MemberStatus, MemberType } from 'apps/timory-api/src/libs/enums/member.enum';
+import { WatchStatus } from 'apps/timory-api/src/libs/enums/watch.enum';
 import { Model } from 'mongoose';
 
 @Injectable()
