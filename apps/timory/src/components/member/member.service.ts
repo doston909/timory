@@ -5,10 +5,11 @@ import { Member, Members } from '../../libs/dto/member/member';
 import {
 	DealersInquiry,
 	LoginInput,
+	LoginWithGoogleInput,
 	MemberInput,
 	MembersInquiry,
 } from '../../libs/dto/member/member.input';
-import { MemberStatus, MemberType } from '../../libs/enums/member.enum';
+import { MemberAuthType, MemberStatus, MemberType } from '../../libs/enums/member.enum';
 import { Direction, Message } from '../../libs/enums/common.enum';
 import { AuthService } from '../auth/auth.service';
 import { MemberUpdate } from '../../libs/dto/member/member.update';
@@ -21,6 +22,7 @@ import { LikeInput } from '../../libs/dto/like/like.input';
 import { LikeGroup } from '../../libs/enums/like.enum';
 import { Follower, Following, MeFollowed } from '../../libs/dto/follow/follow';
 import { lookupAuthMemberLiked } from '../../libs/config';
+import { OAuth2Client } from 'google-auth-library';
 
 @Injectable()
 export class MemberService {
@@ -80,6 +82,59 @@ export class MemberService {
 		response.accessToken = await this.authService.createToken(response);
 
 		return response;
+	}
+
+	public async loginWithGoogle(input: LoginWithGoogleInput): Promise<Member> {
+		const clientId = process.env.GOOGLE_CLIENT_ID;
+		if (!clientId) {
+			throw new InternalServerErrorException('Google sign-in is not configured');
+		}
+		const client = new OAuth2Client(clientId);
+		let payload: { sub: string; email?: string; name?: string; picture?: string };
+		try {
+			const ticket = await client.verifyIdToken({ idToken: input.googleIdToken, audience: clientId });
+			payload = ticket.getPayload();
+		} catch {
+			throw new BadRequestException('Invalid Google token');
+		}
+		if (!payload?.sub) throw new BadRequestException('Invalid Google token');
+
+		const googleId = payload.sub;
+		const email = payload.email ?? null;
+		const name = payload.name ?? payload.email?.split('@')[0] ?? 'User';
+		const picture = payload.picture ?? null;
+
+		let member: Member = await this.memberModel.findOne({ googleId }).exec();
+		if (member) {
+			if (member.memberStatus === MemberStatus.DELETE) throw new InternalServerErrorException(Message.NO_MEMBER_NICK);
+			if (member.memberStatus === MemberStatus.BLOCK) throw new InternalServerErrorException(Message.BLOCKED_USER);
+			member.accessToken = await this.authService.createToken(member);
+			return member;
+		}
+
+		if (email) {
+			member = await this.memberModel.findOne({ memberEmail: email }).exec();
+			if (member) {
+				if (member.memberStatus === MemberStatus.DELETE) throw new InternalServerErrorException(Message.NO_MEMBER_NICK);
+				if (member.memberStatus === MemberStatus.BLOCK) throw new InternalServerErrorException(Message.BLOCKED_USER);
+				await this.memberModel.findByIdAndUpdate(member._id, { $set: { googleId, memberAuthType: MemberAuthType.GOOGLE } }).exec();
+				member = await this.memberModel.findById(member._id).exec();
+				member.accessToken = await this.authService.createToken(member);
+				return member;
+			}
+		}
+
+		const memberType = input.memberType === MemberType.DEALER ? MemberType.DEALER : MemberType.USER;
+		const result = await this.memberModel.create({
+			googleId,
+			memberEmail: email,
+			memberName: name,
+			memberPhoto: picture,
+			memberAuthType: MemberAuthType.GOOGLE,
+			memberType,
+		});
+		result.accessToken = await this.authService.createToken(result);
+		return result;
 	}
 
 	public async updateMember(memberId: ObjectId, input: MemberUpdate): Promise<Member> {

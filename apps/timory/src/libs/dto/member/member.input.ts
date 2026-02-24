@@ -48,6 +48,18 @@ export class LoginInput {
 }
 
 @InputType()
+export class LoginWithGoogleInput {
+	@IsNotEmpty()
+	@Field(() => String)
+	googleIdToken: string;
+
+	@IsOptional()
+	@IsEnum(MemberType)
+	@Field(() => MemberType, { nullable: true })
+	memberType?: MemberType;
+}
+
+@InputType()
 class AISearch {
 	@IsOptional()
 	@Field(() => String, { nullable: true })

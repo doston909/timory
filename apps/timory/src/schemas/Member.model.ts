@@ -38,10 +38,16 @@ const MemberSchema = new Schema(
 			// default yo'q — signupda yozilmasa maydon hujjatda bo'lmaydi, sparse index duplicate qilmaydi
 		},
 
+		googleId: {
+			type: String,
+			index: { unique: true, sparse: true },
+			default: null,
+		},
+
 		memberPassword: {
 			type: String,
 			select: false,
-			required: true,
+			required: false,
 		},
 
 		memberPhoto: {
