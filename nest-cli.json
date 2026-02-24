@@ -1,22 +1,22 @@
 {
   "$schema": "https://json.schemastore.org/nest-cli",
   "collection": "@nestjs/schematics",
-  "sourceRoot": "apps/timory/src",
+  "sourceRoot": "apps/timory-api/src",
   "compilerOptions": {
     "deleteOutDir": true,
     "webpack": true,
-    "tsConfigPath": "apps/timory/tsconfig.app.json"
+    "tsConfigPath": "apps/timory-api/tsconfig.app.json"
   },
   "monorepo": true,
-  "root": "apps/timory",
+  "root": "apps/timory-api",
   "projects": {
-    "timory": {
+    "timory-api": {
       "type": "application",
-      "root": "apps/timory",
+      "root": "apps/timory-api",
       "entryFile": "main",
-      "sourceRoot": "apps/timory/src",
+      "sourceRoot": "apps/timory-api/src",
       "compilerOptions": {
-        "tsConfigPath": "apps/timory/tsconfig.app.json"
+        "tsConfigPath": "apps/timory-api/tsconfig.app.json"
       }
     },
     "timory-batch": {

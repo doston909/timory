@@ -20,9 +20,9 @@ export class CommentResolver {
     @UseGuards(AuthGuard)
     @Mutation((returns) => CommentEntity)
     public async createComment(
-    @Args('input') input: CommentInput,
-    @AuthMember('_id') memberId: ObjectId,
-    ): Promise<Comment> {
+		@Args('input') input: CommentInput,
+		@AuthMember('_id') memberId: ObjectId,
+	): Promise<CommentEntity> {
         console.log('Mutation: createComment');
         return await this.commentService.createComment(memberId, input);
     }
@@ -30,9 +30,9 @@ export class CommentResolver {
     @UseGuards(AuthGuard)
     @Mutation((returns) => CommentEntity)
     public async updateComment(
-    @Args('input') input: CommentUpdate,
-    @AuthMember('_id') memberId: ObjectId,
-    ): Promise<Comment> {
+		@Args('input') input: CommentUpdate,
+		@AuthMember('_id') memberId: ObjectId,
+	): Promise<CommentEntity> {
         console.log('Mutation: updateComment');
         input._id = shapeIntoMongoObjectId(input._id);
         return await this.commentService.updateComment(memberId, input);
@@ -54,7 +54,7 @@ export class CommentResolver {
     public async removeComment(
         @Args('commentId') commentId: string,
         @AuthMember('_id') memberId: ObjectId,
-    ): Promise<Comment> {
+	): Promise<CommentEntity> {
         console.log('Mutation: removeComment');
         const id = shapeIntoMongoObjectId(commentId);
         return await this.commentService.removeComment(memberId, id);
@@ -67,7 +67,7 @@ export class CommentResolver {
 	@Mutation((returns) => CommentEntity)
 	public async removeCommentByAdmin(
 		@Args('commentId') input: string,
-	): Promise<Comment> {
+	): Promise<CommentEntity> {
 		console.log('Mutation: removeCommentByAdmin');
 		const commentId = shapeIntoMongoObjectId(input);
 		return await this.commentService.removeCommentByAdmin(commentId);

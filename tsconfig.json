@@ -9,7 +9,7 @@
     "allowSyntheticDefaultImports": true,
     "target": "ES2021",
     "sourceMap": true,
-    "outDir": "./dist",
+    "outDir": "./dist/apps/timory-api",
     "baseUrl": "./",
     "incremental": true,
     "skipLibCheck": true,
