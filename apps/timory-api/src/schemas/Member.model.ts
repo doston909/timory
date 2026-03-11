@@ -41,7 +41,7 @@ const MemberSchema = new Schema(
 		googleId: {
 			type: String,
 			index: { unique: true, sparse: true },
-			default: null,
+			// default olib tashlandi — field faqat Google login bo'lganda yoziladi
 		},
 
 		memberPassword: {
