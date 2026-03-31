@@ -9,6 +9,7 @@ import { ComponentsModule } from './components/components.module';
 import { DatabaseModule } from './database/database.module';
 import { T } from './libs/types/common';
 import { SocketModule } from './socket/socket.module';
+import { AiController } from './ai.controller';
 
 @Module({
 	imports: [
@@ -36,7 +37,7 @@ import { SocketModule } from './socket/socket.module';
 		SocketModule,
 		
 	], // we can use .env file
-	controllers: [AppController],
+	controllers: [AppController, AiController],
 	providers: [AppService, AppResolver],
 })
 export class AppModule {}
